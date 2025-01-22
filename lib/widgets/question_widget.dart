@@ -17,24 +17,31 @@ class QuestionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             question,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
           ),
+          SizedBox(height: 10),
           DropdownButtonFormField<String>(
+            dropdownColor: Colors.black,
             items: options
-                .map<DropdownMenuItem<String>>((option) =>
-                    DropdownMenuItem(value: option, child: Text(option)))
+                .map((option) => DropdownMenuItem(
+                      value: option,
+                      child:
+                          Text(option, style: TextStyle(color: Colors.white)),
+                    ))
                 .toList(),
             onChanged: onChanged,
             value: selectedOption,
             decoration: InputDecoration(
               border: OutlineInputBorder(),
-              hintText: 'Select an option',
+              filled: true,
+              fillColor: Colors.grey[900],
             ),
           ),
         ],

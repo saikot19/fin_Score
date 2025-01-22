@@ -3,7 +3,10 @@ import '../models/survey_segment.dart';
 import '../widgets/question_widget.dart';
 
 class SurveyPage extends StatefulWidget {
+  const SurveyPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _SurveyPageState createState() => _SurveyPageState();
 }
 
@@ -15,12 +18,24 @@ class _SurveyPageState extends State<SurveyPage> {
       title: 'Personal Demography',
       questions: [
         {
-          'question': 'আপনার বয়সের পরিসর কী?',
-          'options': ['১৮-২৫', '২৬-৩৫', '৩৬-৫০', '৫০+']
+          'question': 'What is your age group?',
+          'options': ['18-25', '26-35', '36-50', '50+']
         },
         {
-          'question': 'আপনার লিঙ্গ কী?',
-          'options': ['পুরুষ', 'মহিলা', 'অন্যান্য']
+          'question': 'What is your gender?',
+          'options': ['Male', 'Female', 'Other']
+        },
+        {
+          'question': 'What is your marital status?',
+          'options': ['Single', 'Married', 'Divorced']
+        },
+        {
+          'question': 'What is your highest education level?',
+          'options': ['High School', 'Bachelor', 'Master', 'PhD']
+        },
+        {
+          'question': 'Do you have dependents?',
+          'options': ['Yes', 'No']
         },
       ],
     ),
@@ -28,12 +43,24 @@ class _SurveyPageState extends State<SurveyPage> {
       title: 'Business Demography',
       questions: [
         {
-          'question': 'আপনার কি কোনো ব্যবসা রয়েছে?',
-          'options': ['হ্যাঁ', 'না']
+          'question': 'Do you own a business?',
+          'options': ['Yes', 'No']
         },
         {
-          'question': 'আপনার ব্যবসার আকার কী?',
-          'options': ['ছোট', 'মাঝারি', 'বড়']
+          'question': 'What is the size of your business?',
+          'options': ['Small', 'Medium', 'Large']
+        },
+        {
+          'question': 'How many employees do you have?',
+          'options': ['1-5', '6-20', '21-50', '50+']
+        },
+        {
+          'question': 'What is your business sector?',
+          'options': ['IT', 'Retail', 'Manufacturing', 'Other']
+        },
+        {
+          'question': 'Do you have a business partner?',
+          'options': ['Yes', 'No']
         },
       ],
     ),
@@ -41,12 +68,24 @@ class _SurveyPageState extends State<SurveyPage> {
       title: 'Assets',
       questions: [
         {
-          'question': 'আপনার কি কোনো স্থাবর সম্পত্তি রয়েছে?',
-          'options': ['হ্যাঁ', 'না']
+          'question': 'Do you own any real estate?',
+          'options': ['Yes', 'No']
         },
         {
-          'question': 'আপনার কি কোনো যানবাহন রয়েছে?',
-          'options': ['হ্যাঁ', 'না']
+          'question': 'Do you own any vehicles?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you have investments?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you own any machinery?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you own valuable collectibles?',
+          'options': ['Yes', 'No']
         },
       ],
     ),
@@ -54,12 +93,24 @@ class _SurveyPageState extends State<SurveyPage> {
       title: 'Financial Demography',
       questions: [
         {
-          'question': 'আপনার বার্ষিক আয়ের পরিসর কী?',
-          'options': ['< \$১০,০০০', '\$১০,০০০-\$৫০,০০০', '> \$৫০,০০০']
+          'question': 'What is your annual income range?',
+          'options': ['< \$10,000', '\$10,000-\$50,000', '>\$50,000']
         },
         {
-          'question': 'আপনার কি কোনো বিদ্যমান ঋণ রয়েছে?',
-          'options': ['হ্যাঁ', 'না']
+          'question': 'Do you have any existing loans?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you have a credit card?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you save monthly?',
+          'options': ['Yes', 'No']
+        },
+        {
+          'question': 'Do you have insurance?',
+          'options': ['Yes', 'No']
         },
       ],
     ),
@@ -67,12 +118,33 @@ class _SurveyPageState extends State<SurveyPage> {
 
   final Map<int, Map<String, String>> _responses = {};
 
+  void _submitSurvey() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Survey Submitted', style: TextStyle(color: Colors.green)),
+        content: Text('Thank you for completing the survey!',
+            style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK', style: TextStyle(color: Colors.green)),
+          ),
+        ],
+        backgroundColor: Colors.black,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final segment = _surveySegments[_currentSegment];
 
     return Scaffold(
-      appBar: AppBar(title: Text(segment.title)),
+      appBar: AppBar(
+        title: Text(segment.title),
+        backgroundColor: Colors.green,
+      ),
       body: Column(
         children: [
           Expanded(
@@ -101,6 +173,8 @@ class _SurveyPageState extends State<SurveyPage> {
             children: [
               if (_currentSegment > 0)
                 ElevatedButton(
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () {
                     setState(() {
                       _currentSegment--;
@@ -109,26 +183,14 @@ class _SurveyPageState extends State<SurveyPage> {
                   child: Text('Previous'),
                 ),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                 onPressed: () {
                   if (_currentSegment < _surveySegments.length - 1) {
                     setState(() {
                       _currentSegment++;
                     });
                   } else {
-                    print('Survey responses: $_responses');
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Survey Complete'),
-                        content: Text('Thank you for completing the survey!'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
+                    _submitSurvey();
                   }
                 },
                 child: Text(_currentSegment < _surveySegments.length - 1

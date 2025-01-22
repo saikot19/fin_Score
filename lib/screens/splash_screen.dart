@@ -1,66 +1,68 @@
-// Packages
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'survey_page.dart';
 
 class SplashScreen extends StatefulWidget {
-  final VoidCallback onInitializationComplete;
-
-  const SplashScreen({
-    super.key,
-    required this.onInitializationComplete,
-  });
+  const SplashScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _SplashPageState();
-  }
+  // ignore: library_private_types_in_public_api
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashPageState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 2), () {
-      widget.onInitializationComplete();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+    _controller.forward();
+
+    Timer(Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SurveyPage()),
+      );
     });
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "Finscore",
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white, // Standard white background
-      ),
-      home: Scaffold(
-        body: Center(
+    return Scaffold(
+      body: Center(
+        child: FadeTransition(
+          opacity: _animation,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(), // Push content to the top
-              // App Logo
               Container(
-                height: 200,
-                width: 200,
+                height: 400,
+                width: 400,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/logo/finscore.jpeg'),
+                    image: AssetImage('assets/logo/PNG transparent-8.png'),
                   ),
                 ),
               ),
-              const SizedBox(height: 20), // Spacer between logo and text
-              const Spacer(), // Push content below the logo upwards
-              // Version Text at the Bottom
-              const Padding(
-                padding: EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  "V.1.0.1",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black, // Black text for readability
-                  ),
-                ),
+              SizedBox(height: 20),
+              SizedBox(height: 10),
+              Text(
+                'V.1.0',
+                style: Theme.of(context).textTheme.bodyMedium,
+                selectionColor: Colors.white,
               ),
             ],
           ),
