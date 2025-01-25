@@ -1,6 +1,7 @@
+// Splash Screen
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'survey_page.dart';
+import 'components/sign_in_form.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,17 +19,20 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // Animation setup
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    Timer(Duration(seconds: 3), () {
+    // Navigate to SignInForm after 3 seconds
+    Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SurveyPage()),
+        MaterialPageRoute(builder: (context) => const SignInForm()),
       );
     });
   }
@@ -51,18 +55,16 @@ class _SplashScreenState extends State<SplashScreen>
               Container(
                 height: 400,
                 width: 400,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/logo/PNG transparent-8.png'),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'V.1.0',
-                style: Theme.of(context).textTheme.bodyMedium,
-                selectionColor: Colors.white,
+                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),
