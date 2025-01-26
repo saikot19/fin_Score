@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart';
 
+import '../survey_page.dart';
+
 class SignInForm extends StatefulWidget {
   const SignInForm({super.key});
 
@@ -30,6 +32,38 @@ class _SignInFormState extends State<SignInForm> {
     return controller;
   }
 
+  void signIn() {
+    setState(() {
+      isShowingLoading = true;
+    });
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (formKey.currentState!.validate()) {
+        check.fire();
+        setState(() {
+          isShowingConfetti = true;
+        });
+
+        Future.delayed(const Duration(seconds: 2), () {
+          // Navigate to SurveyPage after successful login
+          Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(builder: (context) => const SurveyPage()),
+          );
+        });
+      } else {
+        error.fire();
+        Future.delayed(const Duration(seconds: 2), () {
+          reset.fire();
+          setState(() {
+            isShowingLoading = false;
+          });
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size.width * 0.4;
@@ -50,7 +84,7 @@ class _SignInFormState extends State<SignInForm> {
                 children: [
                   const Text(
                     "Email",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
@@ -72,7 +106,7 @@ class _SignInFormState extends State<SignInForm> {
                   ),
                   const Text(
                     "Password",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Color.fromARGB(255, 255, 253, 253)),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
@@ -96,28 +130,7 @@ class _SignInFormState extends State<SignInForm> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 24),
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          isShowingLoading = true;
-                        });
-
-                        Future.delayed(const Duration(seconds: 1), () {
-                          if (formKey.currentState!.validate()) {
-                            check.fire();
-                            setState(() {
-                              isShowingConfetti = true;
-                            });
-                          } else {
-                            error.fire();
-                            Future.delayed(const Duration(seconds: 2), () {
-                              reset.fire();
-                              setState(() {
-                                isShowingLoading = false;
-                              });
-                            });
-                          }
-                        });
-                      },
+                      onPressed: signIn,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromARGB(255, 57, 128, 63),
                         minimumSize: const Size(double.infinity, 56),
@@ -158,7 +171,7 @@ class _SignInFormState extends State<SignInForm> {
             CustomPositioned(
               size: size,
               child: Transform.scale(
-                scale: 7,
+                scale: 3,
                 child: RiveAnimation.asset(
                   "assets/RiveAssets/confetti.riv",
                   onInit: (artboard) {

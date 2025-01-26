@@ -1,13 +1,16 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
+import 'package:finscore/screens/components/animated_btn.dart';
+import 'package:finscore/screens/components/custom_sign_in_dialogue.dart';
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:flutter_svg/svg.dart';
 import 'package:rive/rive.dart';
 
+// ignore: unused_import
 import 'components/animated_btn.dart';
+// ignore: unused_import
 import 'components/custom_sign_in_dialog.dart';
-import 'components/sign_in_form.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,11 +21,11 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   bool isSignInDialogShown = false;
-  late RiveAnimationController _btnAnimationColtroller;
+  late RiveAnimationController _btnAnimationController;
 
   @override
   void initState() {
-    _btnAnimationColtroller = OneShotAnimation(
+    _btnAnimationController = OneShotAnimation(
       "active",
       autoplay: false,
     );
@@ -30,31 +33,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   @override
+  void dispose() {
+    _btnAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // ignore: avoid_init_to_null
+    var btnAnimationColtroller = null;
     return Scaffold(
       body: Stack(
         children: [
+          // Background image
           Positioned(
             width: MediaQuery.of(context).size.width * 1.7,
             bottom: 200,
             left: 100,
             child: Image.asset("assets/Backgrounds/Spline.png"),
           ),
+          // Blur effect for background
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 10),
+              child: const SizedBox(),
             ),
           ),
+          // Rive animation shapes
           const RiveAnimation.asset("assets/RiveAssets/shapes.riv"),
+          // Additional blur overlay
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
               child: const SizedBox(),
             ),
           ),
+          // Animated content
           AnimatedPositioned(
-            // It's time to add the animation
-            // Before that
             top: isSignInDialogShown ? -50 : 0,
             duration: const Duration(milliseconds: 240),
             height: MediaQuery.of(context).size.height,
@@ -66,6 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Spacer(),
+                    // Text and description
                     SizedBox(
                       width: 260,
                       child: Column(
@@ -81,24 +97,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           SizedBox(height: 16),
                           Text(
                             "Don’t skip design. Learn design and code, by building real apps with Flutter and Swift. Complete courses about the best tools.",
+                            style: TextStyle(fontSize: 16),
                           ),
                         ],
                       ),
                     ),
                     const Spacer(flex: 2),
+                    // Animated button
                     AnimatedBtn(
-                      btnAnimationColtroller: _btnAnimationColtroller,
+                      btnAnimationController: _btnAnimationController,
                       press: () {
-                        _btnAnimationColtroller.isActive = true;
+                        _btnAnimationController.isActive = true;
                         Future.delayed(
                           const Duration(milliseconds: 800),
                           () {
-                            // We made it but
-                            // also need to set it false once the dialog close
                             setState(() {
                               isSignInDialogShown = true;
                             });
-                            // Let's add the slide animation while dialog shows
                             customSigninDialog(
                               context,
                               onCLosed: (_) {
@@ -110,18 +125,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           },
                         );
                       },
+                      btnAnimationColtroller: btnAnimationColtroller,
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Text(
                         "Purchase includes access to 30+ courses, 240+ premium tutorials, 120+ hours of videos, source files and certificates.",
+                        style: TextStyle(fontSize: 14),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
