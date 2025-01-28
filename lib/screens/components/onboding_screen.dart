@@ -1,16 +1,9 @@
-import 'dart:ui';
+/*import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:rive/rive.dart' as rive;
 
 import 'package:finscore/screens/components/animated_btn.dart';
 import 'package:finscore/screens/components/custom_sign_in_dialogue.dart';
-import 'package:flutter/material.dart';
-// ignore: unused_import
-import 'package:flutter_svg/svg.dart';
-import 'package:rive/rive.dart';
-
-// ignore: unused_import
-import 'components/animated_btn.dart';
-// ignore: unused_import
-import 'components/custom_sign_in_dialog.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -115,6 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               isSignInDialogShown = true;
                             });
                             customSigninDialog(
+                              // ignore: use_build_context_synchronously
                               context,
                               onCLosed: (_) {
                                 setState(() {
@@ -127,13 +121,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       btnAnimationColtroller: btnAnimationColtroller,
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text(
-                        "Purchase includes access to 30+ courses, 240+ premium tutorials, 120+ hours of videos, source files and certificates.",
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -143,4 +130,4 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-}
+}*/

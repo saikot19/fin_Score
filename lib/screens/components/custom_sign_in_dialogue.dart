@@ -24,7 +24,8 @@ Future<Object?> customSigninDialog(BuildContext context,
         margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.94),
+          // ignore: deprecated_member_use
+          color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.94),
           borderRadius: const BorderRadius.all(Radius.circular(40)),
         ),
         child: Scaffold(

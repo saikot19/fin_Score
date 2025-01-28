@@ -131,7 +131,7 @@ class _SurveyPageState extends State<SurveyPage> {
             child: Text('OK', style: TextStyle(color: Colors.green)),
           ),
         ],
-        backgroundColor: Colors.black,
+        backgroundColor: const Color.fromARGB(255, 2, 11, 51),
       ),
     );
   }

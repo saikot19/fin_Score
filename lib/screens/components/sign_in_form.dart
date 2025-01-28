@@ -1,9 +1,10 @@
+import 'dart:developer';
+import 'package:finscore/api/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart';
-
-import '../survey_page.dart';
+import 'package:finscore/screens/survey_page.dart';
 
 class SignInForm extends StatefulWidget {
   const SignInForm({super.key});
@@ -14,14 +15,17 @@ class SignInForm extends StatefulWidget {
 
 class _SignInFormState extends State<SignInForm> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final AuthService authService = AuthService();
 
   bool isShowingLoading = false;
   bool isShowingConfetti = false;
 
-  late SMITrigger check;
-  late SMITrigger error;
-  late SMITrigger reset;
-  late SMITrigger confetti;
+  SMITrigger? check;
+  SMITrigger? error;
+  SMITrigger? reset;
+  SMITrigger? confetti;
 
   StateMachineController getRiveController(Artboard artboard) {
     final controller = StateMachineController.fromArtboard(
@@ -32,36 +36,55 @@ class _SignInFormState extends State<SignInForm> {
     return controller;
   }
 
-  void signIn() {
+  Future<void> signIn() async {
+    if (!(formKey.currentState?.validate() ?? false)) {
+      error?.fire();
+      return;
+    }
+
     setState(() {
       isShowingLoading = true;
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (formKey.currentState!.validate()) {
-        check.fire();
+    try {
+      final response = await authService.signIn(
+        emailController.text,
+        passwordController.text,
+      );
+
+      if (response['success'] == true) {
+        check?.fire();
         setState(() {
           isShowingConfetti = true;
         });
 
         Future.delayed(const Duration(seconds: 2), () {
-          // Navigate to SurveyPage after successful login
-          Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => const SurveyPage()),
-          );
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SurveyPage()),
+            );
+          }
         });
       } else {
-        error.fire();
-        Future.delayed(const Duration(seconds: 2), () {
-          reset.fire();
-          setState(() {
-            isShowingLoading = false;
-          });
+        throw Exception(response['message'] ?? 'Invalid credentials');
+      }
+    } catch (e, stackTrace) {
+      error?.fire();
+      log('Sign-in failed',
+          name: 'SignInError', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isShowingLoading = false;
         });
       }
-    });
+    }
   }
 
   @override
@@ -82,20 +105,22 @@ class _SignInFormState extends State<SignInForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Email",
-                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-                  ),
+                  const Text("Email",
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 233, 230, 230))),
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
                     child: TextFormField(
+                      controller: emailController,
                       validator: (value) {
-                        if (value!.isEmpty) {
+                        if (value == null || value.isEmpty) {
                           return "Email cannot be empty";
+                        }
+                        if (!RegExp(r'^[0-9]{4}$').hasMatch(value)) {
+                          return "Invalid email format";
                         }
                         return null;
                       },
-                      onSaved: (email) {},
                       decoration: InputDecoration(
                         prefixIcon: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -104,20 +129,19 @@ class _SignInFormState extends State<SignInForm> {
                       ),
                     ),
                   ),
-                  const Text(
-                    "Password",
-                    style: TextStyle(color: Color.fromARGB(255, 255, 253, 253)),
-                  ),
+                  const Text("Password",
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 252, 250, 250))),
                   Padding(
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
                     child: TextFormField(
+                      controller: passwordController,
                       validator: (value) {
-                        if (value!.isEmpty) {
+                        if (value == null || value.isEmpty) {
                           return "Password cannot be empty";
                         }
                         return null;
                       },
-                      onSaved: (password) {},
                       obscureText: true,
                       decoration: InputDecoration(
                         prefixIcon: Padding(
@@ -135,16 +159,11 @@ class _SignInFormState extends State<SignInForm> {
                         backgroundColor: const Color.fromARGB(255, 57, 128, 63),
                         minimumSize: const Size(double.infinity, 56),
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(25),
-                            bottomRight: Radius.circular(25),
-                            bottomLeft: Radius.circular(25),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(25)),
                         ),
                       ),
                       icon: const Icon(
-                        CupertinoIcons.arrow_right,
+                        CupertinoIcons.arrow_right_circle,
                         color: Color(0xFFFE0037),
                       ),
                       label: const Text("Sign In"),
@@ -155,61 +174,43 @@ class _SignInFormState extends State<SignInForm> {
             ),
           ),
           if (isShowingLoading)
-            CustomPositioned(
-              size: size,
-              child: RiveAnimation.asset(
-                "assets/RiveAssets/check.riv",
-                onInit: (artboard) {
-                  final controller = getRiveController(artboard);
-                  check = controller.findSMI("Check") as SMITrigger;
-                  error = controller.findSMI("Error") as SMITrigger;
-                  reset = controller.findSMI("Reset") as SMITrigger;
-                },
-              ),
-            ),
-          if (isShowingConfetti)
-            CustomPositioned(
-              size: size,
-              child: Transform.scale(
-                scale: 3,
+            Positioned(
+              top: size,
+              left: size,
+              child: SizedBox(
+                width: size,
+                height: size,
                 child: RiveAnimation.asset(
-                  "assets/RiveAssets/confetti.riv",
+                  "assets/RiveAssets/check.riv",
                   onInit: (artboard) {
                     final controller = getRiveController(artboard);
-                    confetti =
-                        controller.findSMI("Trigger explosion") as SMITrigger;
+                    check = controller.findSMI("Check") as SMITrigger?;
+                    error = controller.findSMI("Error") as SMITrigger?;
+                    reset = controller.findSMI("Reset") as SMITrigger?;
                   },
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class CustomPositioned extends StatelessWidget {
-  const CustomPositioned({
-    super.key,
-    required this.child,
-    required this.size,
-  });
-
-  final Widget child;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: Column(
-        children: [
-          const Spacer(),
-          SizedBox(
-            width: size,
-            height: size,
-            child: child,
-          ),
-          const Spacer(flex: 2),
+          if (isShowingConfetti)
+            Positioned(
+              top: size,
+              left: size,
+              child: SizedBox(
+                width: size,
+                height: size,
+                child: Transform.scale(
+                  scale: 7,
+                  child: RiveAnimation.asset(
+                    "assets/RiveAssets/confetti.riv",
+                    onInit: (artboard) {
+                      final controller = getRiveController(artboard);
+                      confetti = controller.findSMI("Trigger explosion")
+                          as SMITrigger?;
+                    },
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

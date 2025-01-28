@@ -4,12 +4,11 @@ import 'package:rive/rive.dart';
 
 class AnimatedBtn extends StatelessWidget {
   const AnimatedBtn({
-    Key? key,
+    super.key,
     required RiveAnimationController btnAnimationColtroller,
     required this.press,
     required RiveAnimationController btnAnimationController,
-  })  : _btnAnimationColtroller = btnAnimationColtroller,
-        super(key: key);
+  }) : _btnAnimationColtroller = btnAnimationColtroller;
 
   final RiveAnimationController _btnAnimationColtroller;
   final VoidCallback press;
@@ -39,7 +38,7 @@ class AnimatedBtn extends StatelessWidget {
                   Icon(CupertinoIcons.arrow_right),
                   SizedBox(width: 8),
                   Text(
-                    "Start the course",
+                    "Start the survey",
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
