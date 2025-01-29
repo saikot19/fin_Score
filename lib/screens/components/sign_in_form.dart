@@ -52,32 +52,29 @@ class _SignInFormState extends State<SignInForm> {
         passwordController.text,
       );
 
+      log('API Response: $response', name: 'SignInAPI'); // Add this line
+
       if (response['success'] == true) {
         check?.fire();
-        setState(() {
-          isShowingConfetti = true;
-        });
-
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const SurveyPage()),
-            );
-          }
-        });
+        if (mounted) {
+          setState(() {
+            isShowingConfetti = true;
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const SurveyPage()),
+              );
+            }
+          });
+        }
       } else {
         throw Exception(response['message'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
-      error?.fire();
-      log('Sign-in failed',
+      log('Sign-in failed: $e',
           name: 'SignInError', error: e, stackTrace: stackTrace);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      }
     } finally {
       if (mounted) {
         setState(() {
