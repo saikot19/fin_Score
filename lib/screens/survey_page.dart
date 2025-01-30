@@ -119,16 +119,34 @@ class _SurveyPageState extends State<SurveyPage> {
   final Map<int, Map<String, String>> _responses = {};
 
   void _submitSurvey() {
+    // Check if all questions in the current segment are answered
+    final segment = _surveySegments[_currentSegment];
+    final unansweredQuestions = segment.questions.where((question) {
+      return _responses[_currentSegment]?[question['question']] == null;
+    }).toList();
+
+    if (unansweredQuestions.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please answer all questions before submitting.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation dialog
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Survey Submitted', style: TextStyle(color: Colors.green)),
-        content: Text('Thank you for completing the survey!',
+        title: const Text('Survey Submitted',
+            style: TextStyle(color: Colors.green)),
+        content: const Text('Thank you for completing the survey!',
             style: TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK', style: TextStyle(color: Colors.green)),
+            child: const Text('OK', style: TextStyle(color: Colors.green)),
           ),
         ],
         backgroundColor: const Color.fromARGB(255, 2, 11, 51),
@@ -168,36 +186,40 @@ class _SurveyPageState extends State<SurveyPage> {
               },
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (_currentSegment > 0)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (_currentSegment > 0)
+                  ElevatedButton(
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    onPressed: () {
+                      setState(() {
+                        _currentSegment--;
+                      });
+                    },
+                    child: const Text('Previous'),
+                  ),
                 ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: () {
-                    setState(() {
-                      _currentSegment--;
-                    });
+                    if (_currentSegment < _surveySegments.length - 1) {
+                      setState(() {
+                        _currentSegment++;
+                      });
+                    } else {
+                      _submitSurvey();
+                    }
                   },
-                  child: Text('Previous'),
+                  child: Text(_currentSegment < _surveySegments.length - 1
+                      ? 'Next'
+                      : 'Submit'),
                 ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                onPressed: () {
-                  if (_currentSegment < _surveySegments.length - 1) {
-                    setState(() {
-                      _currentSegment++;
-                    });
-                  } else {
-                    _submitSurvey();
-                  }
-                },
-                child: Text(_currentSegment < _surveySegments.length - 1
-                    ? 'Next'
-                    : 'Submit'),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

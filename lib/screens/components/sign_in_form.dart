@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart';
-import 'package:finscore/screens/survey_page.dart';
 
 class SignInForm extends StatefulWidget {
   const SignInForm({super.key});
@@ -52,7 +51,7 @@ class _SignInFormState extends State<SignInForm> {
         passwordController.text,
       );
 
-      log('API Response: $response', name: 'SignInAPI'); // Add this line
+      log('API Response: $response', name: 'SignInAPI');
 
       if (response['success'] == true) {
         check?.fire();
@@ -62,10 +61,8 @@ class _SignInFormState extends State<SignInForm> {
           });
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const SurveyPage()),
-              );
+              Navigator.pushReplacementNamed(
+                  context, '/survey'); // Navigate to SurveyPage
             }
           });
         }
@@ -75,6 +72,12 @@ class _SignInFormState extends State<SignInForm> {
     } catch (e, stackTrace) {
       log('Sign-in failed: $e',
           name: 'SignInError', error: e, stackTrace: stackTrace);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+      error?.fire();
     } finally {
       if (mounted) {
         setState(() {

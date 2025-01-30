@@ -4,7 +4,7 @@ import 'dart:async';
 import 'components/sign_in_form.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required bool isLoggedIn});
 
   @override
   // ignore: library_private_types_in_public_api
