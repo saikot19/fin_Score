@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'sign_in_form.dart'; // Ensure this file contains the SignInForm widget
+import 'log_in_form.dart'; // Ensure this file contains the SignInForm widget
 
 Future<Object?> customSigninDialog(BuildContext context,
     {required ValueChanged onCLosed}) {
   return showGeneralDialog(
     barrierDismissible: true,
-    barrierLabel: "Sign In",
+    barrierLabel: "Log In",
     context: context,
     transitionDuration: const Duration(milliseconds: 400),
     transitionBuilder: (_, animation, __, child) {
@@ -36,18 +36,18 @@ Future<Object?> customSigninDialog(BuildContext context,
               Column(
                 children: [
                   const Text(
-                    "Sign In",
+                    "Log In",
                     style: TextStyle(fontSize: 34, fontFamily: "Poppins"),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Text(
-                      "Please sign in to continue.",
+                      "Please Log in to continue.",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
-                  const SignInForm(), // Ensure this is implemented
+                  const LogInForm(), // Ensure this is implemented
                   Row(
                     children: const [
                       Expanded(child: Divider(color: Colors.white70)),

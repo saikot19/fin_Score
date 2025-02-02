@@ -1,19 +1,16 @@
-import 'package:finscore/screens/components/sign_in_form.dart';
+import 'package:finscore/screens/components/log_in_form.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api/auth_service.dart';
-import 'screens/splash_screen.dart'; // Import SplashScreen
-// Import SignInScreen
-import '../screens/survey_page.dart'; // Adjust path if needed
+import 'screens/splash_screen.dart';
+import '../screens/survey_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter is initialized
-  await SharedPreferences.getInstance(); // Initialize SharedPreferences
-  final authService = AuthService(); // Initialize AuthService
-  final isLoggedIn =
-      await authService.isLoggedIn(); // Check if the user is logged in
-  runApp(
-      FinScoreApp(isLoggedIn: isLoggedIn)); // Pass the login state to the app
+  WidgetsFlutterBinding.ensureInitialized();
+  await SharedPreferences.getInstance();
+  final authService = AuthService();
+  final isLoggedIn = await authService.isLoggedIn(); // Check if logged in
+  runApp(FinScoreApp(isLoggedIn: isLoggedIn));
 }
 
 class FinScoreApp extends StatelessWidget {
@@ -46,11 +43,10 @@ class FinScoreApp extends StatelessWidget {
           ),
         ),
       ),
-      home:
-          SplashScreen(isLoggedIn: isLoggedIn), // Navigate based on login state
+      home: SplashScreen(isLoggedIn: isLoggedIn),
       routes: {
-        '/signin': (context) => SignInForm(), // Route for SignInScreen
-        '/survey': (context) => SurveyPage(), // Route for SurveyPage
+        '/login': (context) => LogInForm(),
+        '/survey': (context) => SurveyPage(),
       },
     );
   }

@@ -1,18 +1,18 @@
 import 'dart:developer';
-import 'package:finscore/api/auth_service.dart';
+import '../../api/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rive/rive.dart';
 
-class SignInForm extends StatefulWidget {
-  const SignInForm({super.key});
+class LogInForm extends StatefulWidget {
+  const LogInForm({super.key});
 
   @override
-  State<SignInForm> createState() => _SignInFormState();
+  State<LogInForm> createState() => _LogInFormState();
 }
 
-class _SignInFormState extends State<SignInForm> {
+class _LogInFormState extends State<LogInForm> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -51,9 +51,9 @@ class _SignInFormState extends State<SignInForm> {
         passwordController.text,
       );
 
-      log('API Response: $response', name: 'SignInAPI');
+      log('API Response: $response', name: 'LogInAPI');
 
-      if (response['success'] == true) {
+      if (response['status'] == 200) {
         check?.fire();
         if (mounted) {
           setState(() {
@@ -67,11 +67,11 @@ class _SignInFormState extends State<SignInForm> {
           });
         }
       } else {
-        throw Exception(response['message'] ?? 'Invalid credentials');
+        throw Exception(response['msg'] ?? 'Invalid credentials');
       }
     } catch (e, stackTrace) {
-      log('Sign-in failed: $e',
-          name: 'SignInError', error: e, stackTrace: stackTrace);
+      log('Log-in failed: $e',
+          name: 'LogInError', error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -93,7 +93,7 @@ class _SignInFormState extends State<SignInForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sign In"),
+        title: const Text("Log In"),
         backgroundColor: const Color.fromARGB(255, 57, 128, 63),
       ),
       body: Stack(
@@ -166,7 +166,7 @@ class _SignInFormState extends State<SignInForm> {
                         CupertinoIcons.arrow_right_circle,
                         color: Color(0xFFFE0037),
                       ),
-                      label: const Text("Sign In"),
+                      label: const Text("Log In"),
                     ),
                   ),
                 ],

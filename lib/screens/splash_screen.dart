@@ -1,7 +1,7 @@
 // Splash Screen
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'components/sign_in_form.dart';
+import 'components/log_in_form.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required bool isLoggedIn});
@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SignInForm()),
+        MaterialPageRoute(builder: (context) => const LogInForm()),
       );
     });
   }

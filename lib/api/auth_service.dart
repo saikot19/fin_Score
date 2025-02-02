@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -26,11 +27,12 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          await _saveUserEmail(email);
+        if (data['status'] == 200) {
+          // Check the status
+          await _saveUserDetails(data['user']['userDetails']);
           return data;
         } else {
-          throw Exception("Login failed: ${data['message']}");
+          throw Exception("Login failed: ${data['msg']}");
         }
       } else {
         throw Exception(
@@ -48,21 +50,23 @@ class AuthService {
     }
   }
 
-  /// Saves user email for future authentication
-  Future<void> _saveUserEmail(String email) async {
+  /// Saves user details for future authentication
+  Future<void> _saveUserDetails(Map<String, dynamic> userDetails) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userEmail', email);
+    await prefs.setInt('userId', userDetails['id']); // Save user ID
+    await prefs.setInt('branchId', userDetails['branch_id']); // Save branch ID
   }
 
   /// Logs out the user
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('userEmail');
+    await prefs.remove('userId');
+    await prefs.remove('branchId');
   }
 
   /// Checks if the user is logged in
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userEmail') != null;
+    return prefs.getInt('userId') != null; // Check if user ID is saved
   }
 }
