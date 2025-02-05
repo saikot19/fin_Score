@@ -1,63 +1,22 @@
-class Answer {
-  final int id;
-  final String answerBangla;
-
-  final int questionId;
-  final String? linkedQuestions;
-  final double mark;
-  final double score;
-
-  Answer({
-    required this.id,
-    required this.answerBangla,
-    required this.questionId,
-    this.linkedQuestions,
-    required this.mark,
-    required this.score,
-  });
-
-  factory Answer.fromJson(Map<String, dynamic> json) {
-    return Answer(
-      id: json['id'],
-      answerBangla: json['answer_bangla'],
-      questionId: json['question_id'],
-      linkedQuestions: json['linked_questions'],
-      mark: double.parse(json['mark']),
-      score: json['score'].toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'answer_bangla': answerBangla,
-      'question_id': questionId,
-      'linked_questions': linkedQuestions,
-      'mark': mark.toString(),
-      'score': score,
-    };
-  }
-}
-
-class Question {
+class SurveyQuestion {
   final int id;
   final String questionName;
-
+  final String questionNameEng;
   final int segmentId;
-  final int dependency;
+  final int? dependency;
   final String weightInPer;
   final double weightInNum;
   final int? questionId;
   final int? answerId;
   final int status;
+  final List<SurveyAnswer> answers;
 
-  final List<Answer> answers;
-
-  Question({
+  SurveyQuestion({
     required this.id,
     required this.questionName,
+    required this.questionNameEng,
     required this.segmentId,
-    required this.dependency,
+    this.dependency,
     required this.weightInPer,
     required this.weightInNum,
     this.questionId,
@@ -66,21 +25,21 @@ class Question {
     required this.answers,
   });
 
-  factory Question.fromJson(Map<String, dynamic> json) {
-    var answersList = json['answers'] as List;
-    List<Answer> answers = answersList.map((i) => Answer.fromJson(i)).toList();
-
-    return Question(
+  factory SurveyQuestion.fromJson(Map<String, dynamic> json) {
+    return SurveyQuestion(
       id: json['id'],
       questionName: json['question_name'],
+      questionNameEng: json['question_name_eng'],
       segmentId: json['segment_id'],
       dependency: json['dependency'],
       weightInPer: json['weight_in_per'],
-      weightInNum: json['weight_in_num'].toDouble(),
+      weightInNum: double.parse(json['weight_in_num'].toString()),
       questionId: json['question_id'],
       answerId: json['answer_id'],
       status: json['status'],
-      answers: answers,
+      answers: (json['answers'] as List)
+          .map((answerJson) => SurveyAnswer.fromJson(answerJson))
+          .toList(),
     );
   }
 
@@ -88,6 +47,7 @@ class Question {
     return {
       'id': id,
       'question_name': questionName,
+      'question_name_eng': questionNameEng,
       'segment_id': segmentId,
       'dependency': dependency,
       'weight_in_per': weightInPer,
@@ -95,7 +55,51 @@ class Question {
       'question_id': questionId,
       'answer_id': answerId,
       'status': status,
-      'answers': answers.map((e) => e.toJson()).toList(),
+      'answers': answers.map((answer) => answer.toJson()).toList(),
+    };
+  }
+}
+
+class SurveyAnswer {
+  final int id;
+  final String answerBangla;
+  final String answerEnglish;
+  final int questionId;
+  final String? linkedQuestions;
+  final String mark;
+  final double score;
+
+  SurveyAnswer({
+    required this.id,
+    required this.answerBangla,
+    required this.answerEnglish,
+    required this.questionId,
+    this.linkedQuestions,
+    required this.mark,
+    required this.score,
+  });
+
+  factory SurveyAnswer.fromJson(Map<String, dynamic> json) {
+    return SurveyAnswer(
+      id: json['id'],
+      answerBangla: json['answer_bangla'],
+      answerEnglish: json['answer_english'],
+      questionId: json['question_id'],
+      linkedQuestions: json['linked_questions'],
+      mark: json['mark'],
+      score: double.parse(json['score'].toString()),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'answer_bangla': answerBangla,
+      'answer_english': answerEnglish,
+      'question_id': questionId,
+      'linked_questions': linkedQuestions,
+      'mark': mark,
+      'score': score,
     };
   }
 }

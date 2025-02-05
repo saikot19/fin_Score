@@ -1,10 +1,11 @@
-// Splash Screen
-import 'package:flutter/material.dart';
 import 'dart:async';
-import 'components/log_in_form.dart';
+
+import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, required bool isLoggedIn});
+  final bool isLoggedIn;
+
+  const SplashScreen({super.key, required this.isLoggedIn});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -28,12 +29,13 @@ class _SplashScreenState extends State<SplashScreen>
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    // Navigate to SignInForm after 3 seconds
+    // Navigate based on login status
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LogInForm()),
-      );
+      if (widget.isLoggedIn) {
+        Navigator.pushReplacementNamed(context, '/survey');
+      } else {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     });
   }
 
