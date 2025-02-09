@@ -1,105 +1,37 @@
-class SurveyQuestion {
-  final int id;
-  final String questionName;
-  final String questionNameEng;
-  final int segmentId;
-  final int? dependency;
-  final String weightInPer;
-  final double weightInNum;
-  final int? questionId;
-  final int? answerId;
-  final int status;
-  final List<SurveyAnswer> answers;
+class Survey {
+  final int memberId;
+  final int branchId;
+  final double appliedLoanAmount;
+  final String startDate;
+  final Map<int, int> responses; // Key: questionId, Value: answerId
 
-  SurveyQuestion({
-    required this.id,
-    required this.questionName,
-    required this.questionNameEng,
-    required this.segmentId,
-    this.dependency,
-    required this.weightInPer,
-    required this.weightInNum,
-    this.questionId,
-    this.answerId,
-    required this.status,
-    required this.answers,
+  Survey({
+    required this.memberId,
+    required this.branchId,
+    required this.appliedLoanAmount,
+    required this.startDate,
+    required this.responses,
   });
 
-  factory SurveyQuestion.fromJson(Map<String, dynamic> json) {
-    return SurveyQuestion(
-      id: json['id'],
-      questionName: json['question_name'],
-      questionNameEng: json['question_name_eng'],
-      segmentId: json['segment_id'],
-      dependency: json['dependency'],
-      weightInPer: json['weight_in_per'],
-      weightInNum: double.parse(json['weight_in_num'].toString()),
-      questionId: json['question_id'],
-      answerId: json['answer_id'],
-      status: json['status'],
-      answers: (json['answers'] as List)
-          .map((answerJson) => SurveyAnswer.fromJson(answerJson))
-          .toList(),
-    );
-  }
-
+  // Convert Survey object to a JSON map
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'question_name': questionName,
-      'question_name_eng': questionNameEng,
-      'segment_id': segmentId,
-      'dependency': dependency,
-      'weight_in_per': weightInPer,
-      'weight_in_num': weightInNum,
-      'question_id': questionId,
-      'answer_id': answerId,
-      'status': status,
-      'answers': answers.map((answer) => answer.toJson()).toList(),
+      'member_id': memberId,
+      'branch_id': branchId,
+      'applied_loan_amount': appliedLoanAmount,
+      'start_date': startDate,
+      'responses': responses,
     };
   }
-}
 
-class SurveyAnswer {
-  final int id;
-  final String answerBangla;
-  final String answerEnglish;
-  final int questionId;
-  final String? linkedQuestions;
-  final String mark;
-  final double score;
-
-  SurveyAnswer({
-    required this.id,
-    required this.answerBangla,
-    required this.answerEnglish,
-    required this.questionId,
-    this.linkedQuestions,
-    required this.mark,
-    required this.score,
-  });
-
-  factory SurveyAnswer.fromJson(Map<String, dynamic> json) {
-    return SurveyAnswer(
-      id: json['id'],
-      answerBangla: json['answer_bangla'],
-      answerEnglish: json['answer_english'],
-      questionId: json['question_id'],
-      linkedQuestions: json['linked_questions'],
-      mark: json['mark'],
-      score: double.parse(json['score'].toString()),
+  // Create a Survey object from a JSON map
+  factory Survey.fromJson(Map<String, dynamic> json) {
+    return Survey(
+      memberId: json['member_id'],
+      branchId: json['branch_id'],
+      appliedLoanAmount: json['applied_loan_amount'],
+      startDate: json['start_date'],
+      responses: Map<int, int>.from(json['responses']),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'answer_bangla': answerBangla,
-      'answer_english': answerEnglish,
-      'question_id': questionId,
-      'linked_questions': linkedQuestions,
-      'mark': mark,
-      'score': score,
-    };
   }
 }

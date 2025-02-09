@@ -1,14 +1,11 @@
+import 'package:finscore/screens/login_screen.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 class SplashScreen extends StatefulWidget {
-  final bool isLoggedIn;
-
-  const SplashScreen({super.key, required this.isLoggedIn});
+  const SplashScreen({super.key}); // Removed isLoggedIn from constructor
 
   @override
-  // ignore: library_private_types_in_public_api
   _SplashScreenState createState() => _SplashScreenState();
 }
 
@@ -29,12 +26,13 @@ class _SplashScreenState extends State<SplashScreen>
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    // Navigate based on login status
-    Timer(const Duration(seconds: 3), () {
-      if (widget.isLoggedIn) {
-        Navigator.pushReplacementNamed(context, '/survey');
-      } else {
-        Navigator.pushReplacementNamed(context, '/login');
+    // Navigate to LoginScreen after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        // Ensure widget is still in the tree
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
       }
     });
   }
