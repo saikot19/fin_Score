@@ -1,81 +1,5 @@
 /*import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../state_management/survey_provider.dart';
-import '../widgets/segment_widget.dart';
-
-class SurveyQuestionScreen extends StatefulWidget {
-  const SurveyQuestionScreen({super.key});
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _SurveyQuestionScreenState createState() => _SurveyQuestionScreenState();
-}
-
-class _SurveyQuestionScreenState extends State<SurveyQuestionScreen> {
-  int currentSegment = 1;
-
-  @override
-  Widget build(BuildContext context) {
-    final surveyProvider = Provider.of<SurveyProvider>(context);
-    final questions = surveyProvider.questions != null
-        ? surveyProvider.questions
-            .where((q) => q.segmentId == currentSegment)
-            .toList()
-        : [];
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Survey Questions')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: questions.length,
-              itemBuilder: (context, index) {
-                return SegmentWidget(question: questions[index]);
-              },
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (currentSegment > 1)
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      currentSegment--;
-                    });
-                  },
-                  child: Text('Previous'),
-                ),
-              if (currentSegment < 4)
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      currentSegment++;
-                    });
-                  },
-                  child: Text('Next'),
-                ),
-              if (currentSegment == 4)
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle submit
-                  },
-                  child: Text('Submit'),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-extension on SurveyProvider {
-  get questions => null;
-}*/
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../state_management/survey_provider.dart';
 import '../widgets/segment_widget.dart';
@@ -121,7 +45,7 @@ class _SurveyQuestionScreenState extends State<SurveyQuestionScreen> {
               child: ListView.builder(
                 itemCount: questions.length,
                 itemBuilder: (context, index) {
-                  return FadeInUp(
+                  return FadeIn(
                     duration: Duration(milliseconds: 500),
                     child: Card(
                       margin:
@@ -196,4 +120,4 @@ class _SurveyQuestionScreenState extends State<SurveyQuestionScreen> {
       ),
     );
   }
-}
+}*/
