@@ -1,12 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://4.194.252.166/credit-scroring/api/v1';
+  final String baseUrl = 'http://4.194.252.166/credit-scroring/api/v1';
 
-  static Future<Map<String, dynamic>?> login(
-      String email, String password) async {
+  /// User Login API
+  Future<Map<String, dynamic>?> login(String email, String password) async {
     final url = Uri.parse('$baseUrl/login');
+
     try {
       final response = await http.post(
         url,
@@ -15,46 +17,70 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['user'] != null && data['user']['userDetails'] != null) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (data.containsKey('user') && data['user']?['userDetails'] != null) {
           return data['user']['userDetails'];
         }
       }
-      return null;
+      debugPrint("Login Failed: ${response.body}");
     } catch (e) {
-      return null;
+      debugPrint("Login API Error: $e");
     }
+    return null;
   }
 
-  /// Fetch Survey Questions (Updated to match API structure)
-  static Future<List<dynamic>> fetchSurveyQuestions() async {
+  /// Fetch Survey Questions based on `segmentId`
+  Future<List<Map<String, dynamic>>> fetchSurveyQuestions(int segmentId) async {
+    final url = Uri.parse('$baseUrl/questions?segment_id=$segmentId');
+
     try {
-      final response = await http.get(Uri.parse('$baseUrl/questions'));
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint(
+            "Raw API Response: ${jsonEncode(data)}"); // Print full response for debugging
 
-        if (data['status'] == 'success' && data['data'] != null) {
-          return data['data']['questions'] ?? [];
+        // Validate if 'data' contains 'questions' as a List
+        if (data['status'] == 'success' &&
+            data.containsKey('data') &&
+            data['data'] is Map<String, dynamic> &&
+            data['data'].containsKey('questions') &&
+            data['data']['questions'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']['questions']);
+        } else {
+          debugPrint(
+              "Warning: No questions found or invalid response structure for segment $segmentId");
         }
+      } else {
+        debugPrint("Failed to fetch questions. Status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error fetching survey questions: $e");
+      debugPrint("Error fetching survey questions: $e");
     }
 
-    return [];
+    return []; // Return an empty list if there's an issue
   }
 
-  static Future<bool> storeSurvey(Map<String, dynamic> data) async {
+  /// Store Survey Responses
+  Future<bool> storeSurvey(Map<String, dynamic> data) async {
+    final url = Uri.parse('$baseUrl/survey/store');
+
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/survey/store'),
+        url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(data),
       );
-      return response.statusCode == 200;
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint("Survey Submission Failed: ${response.body}");
+      }
     } catch (e) {
-      return false;
+      debugPrint("Error storing survey: $e");
     }
+    return false;
   }
 }
