@@ -106,15 +106,46 @@ class _SurveyScreenState extends State<SurveyScreen> {
                           itemCount: filteredQuestions.length,
                           itemBuilder: (context, index) {
                             final question = filteredQuestions[index];
-                            return QuestionWidget(
-                              question: question,
-                              questionNumber: index + 1,
-                              selectedAnswer:
-                                  surveyProvider.responses[question.id],
-                              onAnswerSelected: (selectedOption) {
-                                _handleAnswerSelected(question.id,
-                                    selectedOption, surveyProvider);
-                              },
+                            int questionNumber = index + 1;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                QuestionWidget(
+                                  question: question,
+                                  questionNumber: questionNumber.toString(),
+                                  selectedAnswer:
+                                      surveyProvider.responses[question.id],
+                                  onAnswerSelected: (selectedOption) {
+                                    _handleAnswerSelected(question.id,
+                                        selectedOption, surveyProvider);
+                                  },
+                                ),
+                                if (surveyProvider.responses
+                                    .containsKey(question.id))
+                                  ...question.answers
+                                      .where((answer) =>
+                                          answer.answerBangla ==
+                                          surveyProvider.responses[question.id])
+                                      .expand((answer) =>
+                                          answer.linkedQuestions ?? [])
+                                      .map((linkedQuestionId) {
+                                    final linkedQuestion =
+                                        surveyProvider.questions.firstWhere(
+                                            (q) => q.id == linkedQuestionId);
+                                    final subQuestionNumber =
+                                        '$questionNumber.${linkedQuestion.id}';
+                                    return QuestionWidget(
+                                      question: linkedQuestion,
+                                      questionNumber: subQuestionNumber,
+                                      selectedAnswer: surveyProvider
+                                          .responses[linkedQuestion.id],
+                                      onAnswerSelected: (selectedOption) {
+                                        _handleAnswerSelected(linkedQuestion.id,
+                                            selectedOption, surveyProvider);
+                                      },
+                                    );
+                                  }).toList(),
+                              ],
                             );
                           },
                         )
@@ -183,7 +214,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
 class QuestionWidget extends StatelessWidget {
   final Question question;
-  final int questionNumber;
+  final String questionNumber;
   final String? selectedAnswer;
   final Function(String) onAnswerSelected;
 
@@ -198,7 +229,7 @@ class QuestionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color.fromARGB(255, 205, 212, 216),
+      color: const Color.fromARGB(255, 220, 223, 224),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -223,8 +254,8 @@ class QuestionWidget extends StatelessWidget {
                   leading: Radio<String>(
                     value: answer.answerBangla,
                     groupValue: selectedAnswer,
-                    activeColor: const Color.fromARGB(255, 5, 80,
-                        34), // Change this to Colors.green if you prefer dark green
+                    activeColor: const Color.fromARGB(255, 19, 119,
+                        72), // Change this to Colors.green if you prefer dark green
                     onChanged: (value) {
                       if (value != null) {
                         onAnswerSelected(value);

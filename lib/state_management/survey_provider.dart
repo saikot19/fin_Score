@@ -1,57 +1,3 @@
-/*import 'package:flutter/material.dart';
-import '../models/question_model.dart';
-import '../services/api_service.dart';
-
-class SurveyProvider extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  List<Question> _surveyQuestions = [];
-  Map<int, int> _responses = {};
-  bool _isLoading = false;
-
-  List<Question> get surveyQuestions => _surveyQuestions;
-  Map<int, int> get responses => _responses;
-  bool get isLoading => _isLoading;
-
-  get questions => null;
-
-  Future<void> fetchSurveyQuestions(int segmentId) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final rawQuestions = await _apiService.fetchSurveyQuestions(segmentId);
-      debugPrint("Raw API Response: $rawQuestions");
-
-      _surveyQuestions = rawQuestions.map((q) => Question.fromJson(q)).toList();
-    } catch (e) {
-      debugPrint("Error fetching questions: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  void saveResponse(int questionId, int answerId) {
-    _responses[questionId] = answerId;
-    notifyListeners();
-  }
-
-  int calculateTotalScore() {
-    int totalScore = 0;
-    for (var question in _surveyQuestions) {
-      if (_responses.containsKey(question.id)) {
-        totalScore += question.answers
-            .firstWhere((a) => a.id == _responses[question.id])
-            .score as int;
-      }
-    }
-    return totalScore;
-  }
-
-  void submitSurvey() {}
-
-  void selectAnswer(id, String selectedOption) {}
-}*/
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
 import '../services/api_service.dart';
@@ -91,8 +37,33 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchLinkedQuestion(int linkedQuestionId) async {
+    try {
+      final rawQuestion =
+          await _apiService.fetchLinkedQuestion(linkedQuestionId);
+      debugPrint("Fetched Linked Question $linkedQuestionId: $rawQuestion");
+
+      final linkedQuestion = Question.fromJson(rawQuestion);
+      _surveyQuestions.add(linkedQuestion);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching linked question: $e");
+    }
+  }
+
   void selectAnswer(int questionId, String selectedOption) {
     _responses[questionId] = selectedOption;
+    final question = _surveyQuestions.firstWhere((q) => q.id == questionId);
+    final selectedAnswer =
+        question.answers.firstWhere((a) => a.answerBangla == selectedOption);
+
+    if (selectedAnswer.linkedQuestions != null &&
+        selectedAnswer.linkedQuestions!.isNotEmpty) {
+      for (var linkedQuestionId in selectedAnswer.linkedQuestions!) {
+        fetchLinkedQuestion(linkedQuestionId);
+      }
+    }
+
     notifyListeners();
   }
 
@@ -101,7 +72,7 @@ class SurveyProvider extends ChangeNotifier {
     for (var question in _surveyQuestions) {
       if (_responses.containsKey(question.id)) {
         totalScore += question.answers
-            .firstWhere((a) => a.text == _responses[question.id])
+            .firstWhere((a) => a.answerBangla == _responses[question.id])
             .score as int;
       }
     }
@@ -112,6 +83,4 @@ class SurveyProvider extends ChangeNotifier {
     debugPrint("Survey Submitted! Responses: $_responses");
     // Handle survey submission (e.g., send data to API)
   }
-
-  void fetchLinkedQuestion(linkedQuestionId) {}
 }

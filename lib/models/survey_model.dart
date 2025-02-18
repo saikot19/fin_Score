@@ -2,10 +2,11 @@ class Question {
   final int id;
   final String questionName;
   final String questionNameEng;
-  final int segmentId;
+  final int? segmentId;
   final int dependency;
   final double weightInPer;
   final double weightInNum;
+  final int? linkedQuestion; // Add linkedQuestion field
   final List<Answer> answers;
 
   Question({
@@ -17,6 +18,7 @@ class Question {
     required this.weightInPer,
     required this.weightInNum,
     required this.answers,
+    this.linkedQuestion, // Initialize linkedQuestion
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -24,10 +26,11 @@ class Question {
       id: json['id'],
       questionName: json['question_name'] ?? 'Unknown',
       questionNameEng: json['question_name_eng'] ?? 'Unknown',
-      segmentId: json['segment_id'] ?? 0,
+      segmentId: json['segment_id'],
       dependency: json['dependency'] ?? 0,
       weightInPer: double.tryParse(json['weight_in_per'].toString()) ?? 0.0,
       weightInNum: double.tryParse(json['weight_in_num'].toString()) ?? 0.0,
+      linkedQuestion: json['question_id'], // Parse linkedQuestion
       answers: (json['answers'] as List<dynamic>?)
               ?.map((answer) => Answer.fromJson(answer))
               .toList() ??
@@ -43,6 +46,7 @@ class Answer {
   final int questionId;
   final double mark;
   final double score;
+  final List<int>? linkedQuestions; // Add linkedQuestions field
 
   Answer({
     required this.id,
@@ -51,6 +55,7 @@ class Answer {
     required this.questionId,
     required this.mark,
     required this.score,
+    this.linkedQuestions, // Initialize linkedQuestions
   });
 
   factory Answer.fromJson(Map<String, dynamic> json) {
@@ -61,6 +66,9 @@ class Answer {
       questionId: json['question_id'] ?? 0,
       mark: double.tryParse(json['mark'].toString()) ?? 0.0,
       score: double.tryParse(json['score'].toString()) ?? 0.0,
+      linkedQuestions: (json['linked_questions'] as List<dynamic>?)
+          ?.map((id) => id as int)
+          .toList(), // Parse linkedQuestions
     );
   }
 }

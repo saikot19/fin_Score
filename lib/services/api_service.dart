@@ -6,14 +6,14 @@ class ApiService {
   final String baseUrl = 'http://4.194.252.166/credit-scroring/api/v1';
 
   /// User Login API
-  Future<Map<String, dynamic>?> login(String email, String password) async {
+  Future<Map<String, dynamic>?> login(String username, String password) async {
     final url = Uri.parse('$baseUrl/login');
 
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
+        body: jsonEncode({"email": username, "password": password}),
       );
 
       if (response.statusCode == 200) {
@@ -60,6 +60,35 @@ class ApiService {
     }
 
     return []; // Return an empty list if there's an issue
+  }
+
+  /// Fetch Linked Question based on `linkedQuestionId`
+  Future<Map<String, dynamic>> fetchLinkedQuestion(int linkedQuestionId) async {
+    final url = Uri.parse('$baseUrl/questions/$linkedQuestionId');
+    debugPrint("Fetching Linked Question from URL: $url");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint("Fetched Linked Question $linkedQuestionId: $data");
+
+        if (data['status'] == 'success' && data.containsKey('data')) {
+          return data['data'];
+        } else {
+          debugPrint(
+              "Warning: No linked question found for ID $linkedQuestionId");
+        }
+      } else {
+        debugPrint(
+            "Failed to fetch linked question. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching linked question: $e");
+    }
+
+    return {}; // Return an empty map if there's an issue
   }
 
   /// Store Survey Responses

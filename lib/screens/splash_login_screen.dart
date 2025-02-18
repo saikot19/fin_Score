@@ -393,7 +393,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                           decoration: InputDecoration(
                             prefixIcon:
                                 const Icon(Icons.email, color: Colors.black54),
-                            labelText: "Email",
+                            labelText: "User Name",
                             labelStyle: GoogleFonts.lexendDeca(
                                 fontWeight: FontWeight.normal),
                             filled: true,
