@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
 import 'survey_screen.dart';
 import 'package:animate_do/animate_do.dart';
+import '../services/api_service.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class FormScreen extends StatefulWidget {
 
 class _FormScreenState extends State<FormScreen> {
   final TextEditingController memberIdController = TextEditingController();
-  final TextEditingController branchIdController = TextEditingController();
+  final TextEditingController memberNameController = TextEditingController();
   final TextEditingController loanAmountController = TextEditingController();
   final TextEditingController loanDateController = TextEditingController();
 
@@ -49,14 +50,14 @@ class _FormScreenState extends State<FormScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTextField(
-                  memberIdController, "সদস্যর আইডি নম্বর", Icons.perm_identity),
+              _buildTextField(memberIdController, "সদস্যর আইডি নম্বর",
+                  Icons.perm_identity, TextInputType.number),
               const SizedBox(height: 20),
-              _buildTextField(branchIdController, "শাখা আইডি",
-                  Icons.account_tree, TextInputType.number),
+              _buildTextField(memberNameController, "সদস্যর নাম", Icons.person,
+                  TextInputType.text),
               const SizedBox(height: 20),
               _buildTextField(loanAmountController, "আবেদনকৃত ঋণের পরিমাণ",
-                  Icons.monetization_on, TextInputType.number),
+                  Icons.attach_money, TextInputType.number),
               const SizedBox(height: 20),
               _buildDatePickerField(),
               const SizedBox(height: 30),
@@ -151,22 +152,54 @@ class _FormScreenState extends State<FormScreen> {
 
   void _onStartSurvey() {
     String memberId = memberIdController.text.trim();
+    String memberName = memberNameController.text.trim();
     String loanDate = loanDateController.text.trim();
 
     if (memberId.isNotEmpty &&
-        branchIdController.text.isNotEmpty &&
+        memberName.isNotEmpty &&
         loanAmountController.text.isNotEmpty &&
         loanDate.isNotEmpty) {
+      if (memberId.length != 12) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("সদস্যর আইডি নম্বর must be 12 digits.")),
+        );
+        return;
+      }
+
+      if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(memberName)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  "সদস্যর নাম cannot contain special characters or numbers.")),
+        );
+        return;
+      }
+
       try {
-        int branchId = int.parse(branchIdController.text.trim());
         double loanAmount = double.parse(loanAmountController.text.trim());
+        if (loanAmount < 5000) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text("আবেদনকৃত ঋণের পরিমাণ must be more than 5000tk.")),
+          );
+          return;
+        }
+
+        // Log form fill-up response
+        debugPrint("Form Fill-up Response:");
+        debugPrint("Member ID: $memberId");
+        debugPrint("Member Name: $memberName");
+        debugPrint("Loan Amount: $loanAmount");
+        debugPrint("Loan Date: $loanDate");
 
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => SurveyScreen(
               memberId: memberId,
-              branchId: branchId,
+              branchId:
+                  2, // Replace with actual branch ID from login API response
               loanAmount: loanAmount,
               loanDate: loanDate, // Pass loan date if needed
               initialSegmentId: 1, // Start from the first segment

@@ -2,6 +2,7 @@ import 'package:finscore/models/question_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state_management/survey_provider.dart';
+import '../services/api_service.dart';
 import '../screens/score_summary_screen.dart';
 import '../screens/survey_tracker.dart';
 
@@ -77,6 +78,51 @@ class _SurveyScreenState extends State<SurveyScreen> {
     }
 
     setState(() {});
+  }
+
+  Future<void> _submitSurvey(SurveyProvider surveyProvider) async {
+    int totalScore = surveyProvider.calculateTotalScore();
+    Map<String, dynamic> surveyResponse = {
+      "member_id": widget.memberId,
+      "branch_id": widget.branchId,
+      "applied_loan_amount": widget.loanAmount,
+      "check": true,
+      "questions": surveyProvider.responses.entries.map((entry) {
+        final question =
+            surveyProvider.questions.firstWhere((q) => q.id == entry.key);
+        final answer =
+            question.answers.firstWhere((a) => a.answerBangla == entry.value);
+        return {
+          "question_id": question.id,
+          "answer_id": answer.id,
+        };
+      }).toList(),
+    };
+
+    // Log survey response
+    debugPrint("Survey Response:");
+    debugPrint(surveyResponse.toString());
+
+    // Send survey response to server
+    final apiService = ApiService();
+    bool success = await apiService.storeSurvey(surveyResponse);
+    if (success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScoreSummaryScreen(
+            totalScore: totalScore,
+            responses: surveyProvider.responses
+                .map((key, value) => MapEntry(key, int.parse(value))),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Failed to submit survey. Please try again.")),
+      );
+    }
   }
 
   @override
@@ -185,21 +231,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                         ),
                       if (currentSegment == 4)
                         ElevatedButton.icon(
-                          onPressed: () {
-                            int totalScore =
-                                surveyProvider.calculateTotalScore();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ScoreSummaryScreen(
-                                  totalScore: totalScore,
-                                  responses: surveyProvider.responses.map(
-                                      (key, value) =>
-                                          MapEntry(key, int.parse(value))),
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: () => _submitSurvey(surveyProvider),
                           icon: const Icon(Icons.check),
                           label: const Text("Submit"),
                         ),
@@ -229,7 +261,7 @@ class QuestionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color.fromARGB(255, 220, 223, 224),
+      color: const Color.fromARGB(255, 153, 182, 160),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -254,8 +286,8 @@ class QuestionWidget extends StatelessWidget {
                   leading: Radio<String>(
                     value: answer.answerBangla,
                     groupValue: selectedAnswer,
-                    activeColor: const Color.fromARGB(255, 19, 119,
-                        72), // Change this to Colors.green if you prefer dark green
+                    activeColor: const Color.fromARGB(255, 4, 14, 4),
+                    // Change this to Colors.green if you prefer dark green
                     onChanged: (value) {
                       if (value != null) {
                         onAnswerSelected(value);

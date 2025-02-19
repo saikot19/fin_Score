@@ -53,17 +53,6 @@ class SurveyProvider extends ChangeNotifier {
 
   void selectAnswer(int questionId, String selectedOption) {
     _responses[questionId] = selectedOption;
-    final question = _surveyQuestions.firstWhere((q) => q.id == questionId);
-    final selectedAnswer =
-        question.answers.firstWhere((a) => a.answerBangla == selectedOption);
-
-    if (selectedAnswer.linkedQuestions != null &&
-        selectedAnswer.linkedQuestions!.isNotEmpty) {
-      for (var linkedQuestionId in selectedAnswer.linkedQuestions!) {
-        fetchLinkedQuestion(linkedQuestionId);
-      }
-    }
-
     notifyListeners();
   }
 
@@ -73,7 +62,8 @@ class SurveyProvider extends ChangeNotifier {
       if (_responses.containsKey(question.id)) {
         totalScore += question.answers
             .firstWhere((a) => a.answerBangla == _responses[question.id])
-            .score as int;
+            .score
+            .toInt(); // Ensure the score is cast to int
       }
     }
     return totalScore;

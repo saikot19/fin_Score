@@ -14,40 +14,37 @@ class ScoreSummaryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Score Summary"),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color.fromARGB(255, 1, 16, 43)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
+        title: const Text("Survey Summary"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              "Thank you! The survey is successfully submitted.",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
             Text(
               "Total Score: $totalScore",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               "Responses:",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
                 itemCount: responses.length,
                 itemBuilder: (context, index) {
                   final questionId = responses.keys.elementAt(index);
-                  final response = responses[questionId];
+                  final answerId = responses.values.elementAt(index);
                   return ListTile(
-                    title: Text("Question $questionId: $response"),
+                    title: Text("Question ID: $questionId"),
+                    subtitle: Text("Answer ID: $answerId"),
                   );
                 },
               ),
