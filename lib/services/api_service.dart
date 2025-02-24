@@ -18,8 +18,8 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        if (data.containsKey('user') && data['user']?['userDetails'] != null) {
-          return data['user']['userDetails'];
+        if (data.containsKey('data')) {
+          return data['data'];
         }
       }
       debugPrint("Login Failed: ${response.body}");
@@ -109,6 +109,86 @@ class ApiService {
       }
     } catch (e) {
       debugPrint("Error storing survey: $e");
+    }
+    return false;
+  }
+
+  /// Fetch Completed Surveys
+  Future<List<Map<String, dynamic>>> fetchCompletedSurveys(int branchId) async {
+    final url = Uri.parse('$baseUrl/surveyeListByBranchId/$branchId/9999');
+    debugPrint("Fetching Completed Surveys from URL: $url");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint("Fetched Completed Surveys: $data");
+
+        if (data['success'] == 200 &&
+            data.containsKey('data') &&
+            data['data'].containsKey('survey_list')) {
+          return List<Map<String, dynamic>>.from(data['data']['survey_list']);
+        } else {
+          debugPrint("Warning: No completed surveys found");
+        }
+      } else {
+        debugPrint(
+            "Failed to fetch completed surveys. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching completed surveys: $e");
+    }
+
+    return []; // Return an empty list if there's an issue
+  }
+
+  /// Fetch User Info
+  Future<Map<String, dynamic>> fetchUserInfo() async {
+    final url = Uri.parse('$baseUrl/user/info');
+    debugPrint("Fetching User Info from URL: $url");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint("Fetched User Info: $data");
+
+        if (data['status'] == 'success' && data.containsKey('data')) {
+          return data['data'];
+        } else {
+          debugPrint("Warning: No user info found");
+        }
+      } else {
+        debugPrint("Failed to fetch user info. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching user info: $e");
+    }
+
+    return {}; // Return an empty map if there's an issue
+  }
+
+  /// Update User Info
+  Future<bool> updateUserInfo(String userName, String branchName) async {
+    final url = Uri.parse('$baseUrl/user/update');
+    debugPrint("Updating User Info at URL: $url");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_name": userName, "branch_name": branchName}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint("User Info Update Failed: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error updating user info: $e");
     }
     return false;
   }

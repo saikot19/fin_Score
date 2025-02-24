@@ -33,7 +33,8 @@ class _FormScreenState extends State<FormScreen> {
           ),
           backgroundColor: const Color.fromARGB(255, 1, 16, 43),
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
+          iconTheme:
+              const IconThemeData(color: Color.fromARGB(255, 255, 255, 255)),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -198,6 +199,7 @@ class _FormScreenState extends State<FormScreen> {
           MaterialPageRoute(
             builder: (context) => SurveyScreen(
               memberId: memberId,
+              memberName: memberName,
               branchId:
                   2, // Replace with actual branch ID from login API response
               loanAmount: loanAmount,

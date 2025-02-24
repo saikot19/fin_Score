@@ -69,8 +69,38 @@ class SurveyProvider extends ChangeNotifier {
     return totalScore;
   }
 
-  void submitSurvey() {
-    debugPrint("Survey Submitted! Responses: $_responses");
-    // Handle survey submission (e.g., send data to API)
+  Future<void> submitSurvey(String memberId, String memberName, int branchId,
+      double loanAmount, String startDate, String completionDate) async {
+    Map<String, dynamic> surveyResponse = {
+      "member_id": memberId,
+      "member_name": memberName,
+      "branch_id": branchId,
+      "applied_loan_amount": loanAmount,
+      "start_date": startDate,
+      "completion_date": completionDate,
+      "status": true, // Set status to true
+      "questions": _responses.entries.map((entry) {
+        final questionId = entry.key;
+        final selectedOption = entry.value;
+        final question = _surveyQuestions.firstWhere((q) => q.id == questionId);
+        final answer = question.answers
+            .firstWhere((a) => a.answerBangla == selectedOption);
+        return {
+          "question_id": questionId,
+          "answer_id": answer.id,
+          "score": answer.score,
+        };
+      }).toList(),
+    };
+
+    debugPrint("Survey Response: ${surveyResponse.toString()}");
+
+    final success = await _apiService.storeSurvey(surveyResponse);
+
+    if (success) {
+      debugPrint("Survey submitted successfully.");
+    } else {
+      debugPrint("Failed to submit survey.");
+    }
   }
 }

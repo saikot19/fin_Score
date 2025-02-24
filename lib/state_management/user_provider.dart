@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
-class UserProvider with ChangeNotifier {
-  int? userId;
-  int? branchId;
-  bool isLoggedIn = false;
+class UserProvider extends ChangeNotifier {
+  Map<String, dynamic> _userInfo = {};
 
-  void login(int id, int branch) {
-    userId = id;
-    branchId = branch;
-    isLoggedIn = true;
+  Map<String, dynamic> get userInfo => _userInfo;
+
+  void login(int userId, int branchId, String userName, String branchName) {
+    _userInfo = {
+      'user_id': userId,
+      'branch_id': branchId,
+      'user_name': userName,
+      'branch_name': branchName,
+    };
     notifyListeners();
   }
 
   void logout() {
-    userId = null;
-    branchId = null;
-    isLoggedIn = false;
+    _userInfo = {};
     notifyListeners();
   }
 }

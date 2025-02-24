@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/api_service.dart';
 import '../state_management/user_provider.dart';
-import 'form_screen.dart';
+import 'dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SplashLoginScreen extends StatefulWidget {
@@ -65,11 +65,15 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
     if (userData != null) {
       setState(() => showTick = true);
       await Future.delayed(const Duration(seconds: 2));
-      Provider.of<UserProvider>(context, listen: false)
-          .login(userData['id'], userData['branch_id']);
+      Provider.of<UserProvider>(context, listen: false).login(
+        userData['user_id'],
+        userData['branch_id'],
+        userData['user_name'],
+        userData['branch_name'],
+      );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => FormScreen()),
+        MaterialPageRoute(builder: (context) => DashboardScreen()),
       );
     } else {
       setState(() => showCross = true);

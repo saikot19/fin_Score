@@ -8,6 +8,7 @@ import '../screens/survey_tracker.dart';
 
 class SurveyScreen extends StatefulWidget {
   final String memberId;
+  final String memberName;
   final int branchId;
   final double loanAmount;
   final String loanDate;
@@ -16,6 +17,7 @@ class SurveyScreen extends StatefulWidget {
   const SurveyScreen({
     Key? key,
     required this.memberId,
+    required this.memberName,
     required this.branchId,
     required this.loanAmount,
     required this.loanDate,
@@ -84,9 +86,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
     int totalScore = surveyProvider.calculateTotalScore();
     Map<String, dynamic> surveyResponse = {
       "member_id": widget.memberId,
+      "member_name": widget.memberName,
       "branch_id": widget.branchId,
       "applied_loan_amount": widget.loanAmount,
-      "check": true,
+      "start_date": widget.loanDate,
+      "completion_date": widget.loanDate,
+      "status": 1,
       "questions": surveyProvider.responses.entries.map((entry) {
         final question =
             surveyProvider.questions.firstWhere((q) => q.id == entry.key);
@@ -95,6 +100,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
         return {
           "question_id": question.id,
           "answer_id": answer.id,
+          "score": answer.score,
         };
       }).toList(),
     };
@@ -215,8 +221,13 @@ class _SurveyScreenState extends State<SurveyScreen> {
                             });
                             surveyProvider.fetchSurveyQuestions(currentSegment);
                           },
-                          icon: const Icon(Icons.arrow_back),
-                          label: const Text("Previous"),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Color.fromARGB(255, 153, 182, 160),
+                          ),
+                          label: const Text("Previous",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255))),
                         ),
                       if (currentSegment < 4)
                         ElevatedButton.icon(
@@ -226,14 +237,24 @@ class _SurveyScreenState extends State<SurveyScreen> {
                             });
                             surveyProvider.fetchSurveyQuestions(currentSegment);
                           },
-                          icon: const Icon(Icons.arrow_forward),
-                          label: const Text("Next"),
+                          icon: const Icon(
+                            Icons.arrow_forward,
+                            color: Color.fromARGB(255, 153, 182, 160),
+                          ),
+                          label: const Text("Next",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255))),
                         ),
                       if (currentSegment == 4)
                         ElevatedButton.icon(
                           onPressed: () => _submitSurvey(surveyProvider),
-                          icon: const Icon(Icons.check),
-                          label: const Text("Submit"),
+                          icon: const Icon(
+                            Icons.check,
+                            color: Color.fromARGB(255, 153, 182, 160),
+                          ),
+                          label: const Text("Submit",
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255))),
                         ),
                     ],
                   ),
@@ -261,7 +282,7 @@ class QuestionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color.fromARGB(255, 153, 182, 160),
+      color: const Color.fromARGB(255, 209, 238, 216),
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Padding(
         padding: const EdgeInsets.all(10.0),

@@ -1,5 +1,7 @@
 import 'package:finscore/screens/splash_login_screen.dart';
 import 'package:finscore/screens/survey_screen.dart';
+import 'package:finscore/screens/dashboard_screen.dart';
+import 'package:finscore/screens/profile_screen.dart';
 import 'package:finscore/state_management/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,6 +35,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splashlogin': (context) =>
             const SplashLoginScreen(), // Updated screen
+
+        '/dashboard': (context) => DashboardScreen(),
+        '/profile': (context) => ProfileScreen(),
         '/form': (context) => FormScreen(),
       },
     );
