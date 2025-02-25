@@ -92,17 +92,19 @@ class ApiService {
   }
 
   /// Store Survey Responses
-  Future<bool> storeSurvey(Map<String, dynamic> data) async {
+  Future<bool> storeSurvey(String jsonData) async {
     final url = Uri.parse('$baseUrl/survey/store');
 
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode(data),
+        body: jsonData,
       );
 
       if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        debugPrint("Survey Submission Response: $responseData");
         return true;
       } else {
         debugPrint("Survey Submission Failed: ${response.body}");

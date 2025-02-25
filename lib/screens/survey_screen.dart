@@ -1,3 +1,4 @@
+import 'dart:convert'; // Import the dart:convert library for JSON encoding
 import 'package:finscore/models/question_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -105,13 +106,16 @@ class _SurveyScreenState extends State<SurveyScreen> {
       }).toList(),
     };
 
+    // Convert survey response to JSON string
+    String surveyResponseJson = jsonEncode(surveyResponse);
+
     // Log survey response
-    debugPrint("Survey Response:");
-    debugPrint(surveyResponse.toString());
+    debugPrint("Survey Response JSON:");
+    debugPrint(surveyResponseJson);
 
     // Send survey response to server
     final apiService = ApiService();
-    bool success = await apiService.storeSurvey(surveyResponse);
+    bool success = await apiService.storeSurvey(surveyResponseJson);
     if (success) {
       Navigator.push(
         context,

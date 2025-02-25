@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert'; // Import the dart:convert library for JSON encoding
 import '../models/question_model.dart';
 import '../services/api_service.dart';
 
@@ -78,24 +79,31 @@ class SurveyProvider extends ChangeNotifier {
       "applied_loan_amount": loanAmount,
       "start_date": startDate,
       "completion_date": completionDate,
-      "status": true, // Set status to true
-      "questions": _responses.entries.map((entry) {
-        final questionId = entry.key;
-        final selectedOption = entry.value;
-        final question = _surveyQuestions.firstWhere((q) => q.id == questionId);
-        final answer = question.answers
-            .firstWhere((a) => a.answerBangla == selectedOption);
-        return {
-          "question_id": questionId,
-          "answer_id": answer.id,
-          "score": answer.score,
-        };
-      }).toList(),
+      "status": 1, // Set status to 1
+      "questions": {
+        for (var entry in _responses.entries)
+          entry.key.toString(): {
+            "question_id": entry.key,
+            "answer_id": _surveyQuestions
+                .firstWhere((q) => q.id == entry.key)
+                .answers
+                .firstWhere((a) => a.answerBangla == entry.value)
+                .id,
+            "score": _surveyQuestions
+                .firstWhere((q) => q.id == entry.key)
+                .answers
+                .firstWhere((a) => a.answerBangla == entry.value)
+                .score,
+          }
+      },
     };
 
-    debugPrint("Survey Response: ${surveyResponse.toString()}");
+    // Convert survey response to JSON string
+    String surveyResponseJson = jsonEncode(surveyResponse);
 
-    final success = await _apiService.storeSurvey(surveyResponse);
+    debugPrint("Survey Response JSON: $surveyResponseJson");
+
+    final success = await _apiService.storeSurvey(surveyResponseJson);
 
     if (success) {
       debugPrint("Survey submitted successfully.");
