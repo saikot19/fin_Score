@@ -49,6 +49,20 @@ class Question {
   /// Returns the question text to display
   String get text => questionNameEng;
 
+  get branchName => null;
+
+  get startDate => null;
+
+  get appliedLoanAmount => null;
+
+  get memberId => null;
+
+  get createdAt => null;
+
+  get scoreTotal => null;
+
+  get status => null;
+
   /// Converts object to JSON
   Map<String, dynamic> toJson() {
     return {

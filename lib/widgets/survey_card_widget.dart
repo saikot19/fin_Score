@@ -18,25 +18,127 @@ class SurveyCard extends StatelessWidget {
       color: const Color.fromARGB(255, 0, 0, 0),
     );
 
-    return Card(
-      margin: const EdgeInsets.all(10),
-      color: const Color.fromARGB(255, 209, 238, 216),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("SL No: $index", style: textStyle),
-            Text("Branch Name: ${survey['branch_name']}", style: textStyle),
-            Text("Member Code: ${survey['member_id']}", style: textStyle),
-            Text("Entry Date: ${survey['start_date']}", style: textStyle),
-            Text("Entry Time: ${survey['created_at']}", style: textStyle),
-            Text("Applied Loan Amount: ${survey['applied_loan_amount']}",
-                style: textStyle),
-            Text("Score: ${survey['scoreTotal']}", style: textStyle),
-            Text("Status: ${survey['status'] == 2 ? 'Completed' : 'Pending'}",
-                style: textStyle),
-          ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SurveyDetailScreen(survey: survey),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.all(10),
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Member Name: ${survey['member_name']}",
+                style: textStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                "Branch Name: ${survey['branch_name']}",
+                style: textStyle.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                "Status: ${survey['status'] == 2 ? 'Completed' : 'Pending'}",
+                style: textStyle.copyWith(
+                  color: survey['status'] == 2 ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SurveyDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> survey;
+
+  const SurveyDetailScreen({Key? key, required this.survey}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = GoogleFonts.lexendDeca(
+      fontWeight: FontWeight.normal,
+      color: const Color.fromARGB(255, 0, 0, 0),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Survey Details"),
+        backgroundColor: const Color.fromARGB(255, 1, 16, 43),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+            ),
+            color: const Color.fromARGB(255, 240, 240, 240),
+            elevation: 10,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "ID: ${survey['id']}",
+                    style: textStyle.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text("Branch ID: ${survey['branch_id']}", style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Member ID: ${survey['member_id']}", style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Member Name: ${survey['member_name']}",
+                      style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Applied Loan Amount: ${survey['applied_loan_amount']}",
+                      style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Start Date: ${survey['start_date']}", style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Completion Date: ${survey['completion_date']}",
+                      style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Score Total: ${survey['scoreTotal']}",
+                      style: textStyle),
+                  const SizedBox(height: 10),
+                  Text(
+                      "Status: ${survey['status'] == 2 ? 'Completed' : 'Pending'}",
+                      style: textStyle.copyWith(
+                        color:
+                            survey['status'] == 2 ? Colors.green : Colors.red,
+                      )),
+                  const SizedBox(height: 10),
+                  Text("Created At: ${survey['created_at']}", style: textStyle),
+                  const SizedBox(height: 10),
+                  Text("Updated At: ${survey['updated_at']}", style: textStyle),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

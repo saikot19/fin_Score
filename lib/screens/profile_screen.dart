@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../state_management/user_provider.dart';
-import '../widgets/bottom_nav_bar_widget.dart';
+import '../widgets/user_info_card_widget.dart';
 import 'package:animate_do/animate_do.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -10,9 +8,6 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final userInfo = userProvider.userInfo;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -40,29 +35,10 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              "User Name: ${userInfo['user_name'] ?? ''}",
-              style: GoogleFonts.lexendDeca(fontSize: 16, color: Colors.black),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Branch Name: ${userInfo['branch_name'] ?? ''}",
-              style: GoogleFonts.lexendDeca(fontSize: 16, color: Colors.black),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "User ID: ${userInfo['user_id'] ?? ''}",
-              style: GoogleFonts.lexendDeca(fontSize: 16, color: Colors.black),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Branch ID: ${userInfo['branch_id'] ?? ''}",
-              style: GoogleFonts.lexendDeca(fontSize: 16, color: Colors.black),
-            ),
+            const UserInfoCard(), // Use the UserInfoCard widget
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(),
     );
   }
 }

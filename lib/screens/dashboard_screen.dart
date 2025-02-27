@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
 import '../services/api_service.dart';
-import '../widgets/survey_card_widget.dart';
-import '../widgets/bottom_nav_bar_widget.dart';
+import '../widgets/survey_overview_widget.dart'; // Updated import
+import '../widgets/user_info_card_widget.dart';
 import 'form_screen.dart';
 import 'package:animate_do/animate_do.dart';
 
@@ -16,18 +16,17 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late Future<List<Map<String, dynamic>>> _completedSurveys;
+  late Future<void> _fetchSurveysFuture;
 
   @override
   void initState() {
     super.initState();
-    _completedSurveys = _fetchCompletedSurveys();
+    _fetchSurveysFuture = _fetchSurveys();
   }
 
-  Future<List<Map<String, dynamic>>> _fetchCompletedSurveys() async {
-    final apiService = ApiService();
-    return await apiService
-        .fetchCompletedSurveys(2); // Replace with actual branch ID
+  Future<void> _fetchSurveys() async {
+    final surveyProvider = Provider.of<SurveyProvider>(context, listen: false);
+    await surveyProvider.fetchSurveys(2); // Replace with actual branch ID
   }
 
   @override
@@ -48,25 +47,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             color: Color.fromARGB(255, 153, 182, 160),
           ),
         ),
-        body: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _completedSurveys,
+        body: FutureBuilder<void>(
+          future: _fetchSurveysFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text("Error: ${snapshot.error}"));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No completed surveys found."));
             } else {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  final survey = snapshot.data![index];
-                  return SurveyCard(
-                    survey: survey,
-                    index: index + 1, // SL No
-                  );
-                },
+              return Column(
+                children: [
+                  const UserInfoCard(), // Added UserInfoCard at the top
+                  const SizedBox(height: 20),
+                  const SurveyOverviewWidget(), // Added SurveyOverviewWidget
+                ],
               );
             }
           },
@@ -79,11 +73,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
           child: const Icon(Icons.add),
-
-          backgroundColor: Color.fromARGB(255, 20, 92,
-              37), // Change this to your desired color const Color.fromARGB(255, 255, 255, 255)),
+          backgroundColor: const Color.fromARGB(255, 20, 92, 37),
         ),
-        bottomNavigationBar: BottomNavBar(),
       ),
     );
   }

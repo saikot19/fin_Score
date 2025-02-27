@@ -6,11 +6,13 @@ import '../services/api_service.dart';
 class SurveyProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   List<Question> _surveyQuestions = [];
+  List<Map<String, dynamic>> _surveys = [];
   Map<int, String> _responses =
       {}; // Stores responses as (questionId -> selected option)
   bool _isLoading = false;
 
   List<Question> get questions => _surveyQuestions;
+  List<Map<String, dynamic>> get surveys => _surveys;
   Map<int, String> get responses => _responses;
   bool get isLoading => _isLoading;
 
@@ -49,6 +51,22 @@ class SurveyProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint("Error fetching linked question: $e");
+    }
+  }
+
+  Future<void> fetchSurveys(int branchId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.fetchCompletedSurveys(branchId);
+      _surveys = response;
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching surveys: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
