@@ -20,6 +20,14 @@ class _FormScreenState extends State<FormScreen> {
   final TextEditingController loanDateController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Set the default date as the present date
+    loanDateController.text =
+        "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => SurveyProvider(),

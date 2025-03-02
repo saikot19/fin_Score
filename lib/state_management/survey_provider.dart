@@ -10,11 +10,13 @@ class SurveyProvider extends ChangeNotifier {
   Map<int, String> _responses =
       {}; // Stores responses as (questionId -> selected option)
   bool _isLoading = false;
+  int _totalCompletedSurveys = 0;
 
   List<Question> get questions => _surveyQuestions;
   List<Map<String, dynamic>> get surveys => _surveys;
   Map<int, String> get responses => _responses;
   bool get isLoading => _isLoading;
+  int get totalCompletedSurveys => _totalCompletedSurveys;
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
     _isLoading = true;
@@ -70,8 +72,29 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchSurveyCount(int branchId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _totalCompletedSurveys =
+          await _apiService.fetchTotalSurveyCount(branchId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching survey count: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void selectAnswer(int questionId, String selectedOption) {
     _responses[questionId] = selectedOption;
+    notifyListeners();
+  }
+
+  void setResponses(Map<int, String> responses) {
+    _responses = responses;
     notifyListeners();
   }
 
@@ -129,4 +152,6 @@ class SurveyProvider extends ChangeNotifier {
       debugPrint("Failed to submit survey.");
     }
   }
+
+  void setSurveys(surveys) {}
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
-import '../services/api_service.dart';
 import '../widgets/survey_overview_widget.dart'; // Updated import
 import '../widgets/user_info_card_widget.dart';
 import 'form_screen.dart';
@@ -36,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            "Dashboard",
+            "Home",
             style: GoogleFonts.lexendDeca(
                 fontWeight: FontWeight.bold,
                 color: const Color.fromARGB(255, 255, 255, 255)),

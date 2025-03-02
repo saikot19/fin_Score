@@ -194,4 +194,8 @@ class ApiService {
     }
     return false;
   }
+
+  fetchTotalSurveyCount(int branchId) {}
+
+  fetchSurveys() {}
 }

@@ -6,6 +6,7 @@ import '../state_management/survey_provider.dart';
 import '../services/api_service.dart';
 import '../screens/score_summary_screen.dart';
 import '../screens/survey_tracker.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class SurveyScreen extends StatefulWidget {
   final String memberId;
@@ -117,14 +118,14 @@ class _SurveyScreenState extends State<SurveyScreen> {
     final apiService = ApiService();
     bool success = await apiService.storeSurvey(surveyResponseJson);
     if (success) {
-      Navigator.push(
+      // Clear saved survey progress
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('surveyProgress');
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => ScoreSummaryScreen(
-            totalScore: totalScore,
-            responses: surveyProvider.responses
-                .map((key, value) => MapEntry(key, int.parse(value))),
-          ),
+          builder: (context) => const ScoreSummaryScreen(),
         ),
       );
     } else {
@@ -132,6 +133,29 @@ class _SurveyScreenState extends State<SurveyScreen> {
         const SnackBar(
             content: Text("Failed to submit survey. Please try again.")),
       );
+    }
+  }
+
+  Future<void> _saveSurveyProgress(SurveyProvider surveyProvider) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'surveyProgress',
+        jsonEncode({
+          'currentSegment': currentSegment,
+          'responses': surveyProvider.responses,
+        }));
+  }
+
+  Future<void> _loadSurveyProgress(SurveyProvider surveyProvider) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('surveyProgress')) {
+      final surveyProgress = jsonDecode(prefs.getString('surveyProgress')!);
+      setState(() {
+        currentSegment = surveyProgress['currentSegment'];
+        surveyProvider
+            .setResponses(Map<int, String>.from(surveyProgress['responses']));
+      });
+      surveyProvider.fetchSurveyQuestions(currentSegment);
     }
   }
 
@@ -144,127 +168,162 @@ class _SurveyScreenState extends State<SurveyScreen> {
     final filteredQuestions =
         _filterQuestions(segmentQuestions, surveyProvider.responses);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(segmentNames[currentSegment]!),
-      ),
-      body: surveyProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                SurveyTracker(
-                  currentSegment: currentSegment,
-                  totalSegments: segmentNames.length,
-                ),
-                Expanded(
-                  child: filteredQuestions.isNotEmpty
-                      ? ListView.builder(
-                          itemCount: filteredQuestions.length,
-                          itemBuilder: (context, index) {
-                            final question = filteredQuestions[index];
-                            int questionNumber = index + 1;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                QuestionWidget(
-                                  question: question,
-                                  questionNumber: questionNumber.toString(),
-                                  selectedAnswer:
-                                      surveyProvider.responses[question.id],
-                                  onAnswerSelected: (selectedOption) {
-                                    _handleAnswerSelected(question.id,
-                                        selectedOption, surveyProvider);
-                                  },
-                                ),
-                                if (surveyProvider.responses
-                                    .containsKey(question.id))
-                                  ...question.answers
-                                      .where((answer) =>
-                                          answer.answerBangla ==
-                                          surveyProvider.responses[question.id])
-                                      .expand((answer) =>
-                                          answer.linkedQuestions ?? [])
-                                      .map((linkedQuestionId) {
-                                    final linkedQuestion =
-                                        surveyProvider.questions.firstWhere(
-                                            (q) => q.id == linkedQuestionId);
-                                    final subQuestionNumber =
-                                        '$questionNumber.${linkedQuestion.id}';
-                                    return QuestionWidget(
-                                      question: linkedQuestion,
-                                      questionNumber: subQuestionNumber,
-                                      selectedAnswer: surveyProvider
-                                          .responses[linkedQuestion.id],
-                                      onAnswerSelected: (selectedOption) {
-                                        _handleAnswerSelected(linkedQuestion.id,
-                                            selectedOption, surveyProvider);
-                                      },
-                                    );
-                                  }).toList(),
-                              ],
-                            );
-                          },
-                        )
-                      : const Center(
-                          child: Text(
-                            "No questions available for this segment.",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (currentSegment > 1)
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              currentSegment--;
-                            });
-                            surveyProvider.fetchSurveyQuestions(currentSegment);
-                          },
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Color.fromARGB(255, 153, 182, 160),
-                          ),
-                          label: const Text("Previous",
-                              style: TextStyle(
-                                  color: Color.fromARGB(255, 255, 255, 255))),
-                        ),
-                      if (currentSegment < 4)
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              currentSegment++;
-                            });
-                            surveyProvider.fetchSurveyQuestions(currentSegment);
-                          },
-                          icon: const Icon(
-                            Icons.arrow_forward,
-                            color: Color.fromARGB(255, 153, 182, 160),
-                          ),
-                          label: const Text("Next",
-                              style: TextStyle(
-                                  color: Color.fromARGB(255, 255, 255, 255))),
-                        ),
-                      if (currentSegment == 4)
-                        ElevatedButton.icon(
-                          onPressed: () => _submitSurvey(surveyProvider),
-                          icon: const Icon(
-                            Icons.check,
-                            color: Color.fromARGB(255, 153, 182, 160),
-                          ),
-                          label: const Text("Submit",
-                              style: TextStyle(
-                                  color: Color.fromARGB(255, 255, 255, 255))),
-                        ),
-                    ],
+    return WillPopScope(
+      onWillPop: () async {
+        await _saveSurveyProgress(surveyProvider);
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(segmentNames[currentSegment]!),
+        ),
+        body: surveyProvider.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  SurveyTracker(
+                    currentSegment: currentSegment,
+                    totalSegments: segmentNames.length,
                   ),
-                ),
-              ],
-            ),
+                  Expanded(
+                    child: filteredQuestions.isNotEmpty
+                        ? ListView.builder(
+                            itemCount: filteredQuestions.length,
+                            itemBuilder: (context, index) {
+                              final question = filteredQuestions[index];
+                              int questionNumber = index + 1;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  QuestionWidget(
+                                    question: question,
+                                    questionNumber: questionNumber.toString(),
+                                    selectedAnswer:
+                                        surveyProvider.responses[question.id],
+                                    onAnswerSelected: (selectedOption) {
+                                      _handleAnswerSelected(question.id,
+                                          selectedOption, surveyProvider);
+                                    },
+                                  ),
+                                  if (surveyProvider.responses
+                                      .containsKey(question.id))
+                                    ...question.answers
+                                        .where((answer) =>
+                                            answer.answerBangla ==
+                                            surveyProvider
+                                                .responses[question.id])
+                                        .expand((answer) =>
+                                            answer.linkedQuestions ?? [])
+                                        .map((linkedQuestionId) {
+                                      final linkedQuestion =
+                                          surveyProvider.questions.firstWhere(
+                                              (q) => q.id == linkedQuestionId);
+                                      final subQuestionNumber =
+                                          '$questionNumber.${linkedQuestion.id}';
+                                      return QuestionWidget(
+                                        question: linkedQuestion,
+                                        questionNumber: subQuestionNumber,
+                                        selectedAnswer: surveyProvider
+                                            .responses[linkedQuestion.id],
+                                        onAnswerSelected: (selectedOption) {
+                                          _handleAnswerSelected(
+                                              linkedQuestion.id,
+                                              selectedOption,
+                                              surveyProvider);
+                                        },
+                                      );
+                                    }).toList(),
+                                ],
+                              );
+                            },
+                          )
+                        : const Center(
+                            child: Text(
+                              "No questions available for this segment.",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (currentSegment > 1)
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await _saveSurveyProgress(surveyProvider);
+                              setState(() {
+                                currentSegment--;
+                              });
+                              surveyProvider
+                                  .fetchSurveyQuestions(currentSegment);
+                            },
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Color.fromARGB(255, 153, 182, 160),
+                            ),
+                            label: const Text("Previous",
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255))),
+                          ),
+                        if (currentSegment < 4)
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              if (filteredQuestions.any((q) => !surveyProvider
+                                  .responses
+                                  .containsKey(q.id))) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Please answer all questions before proceeding.")),
+                                );
+                                return;
+                              }
+                              _saveSurveyProgress(surveyProvider);
+                              setState(() {
+                                currentSegment++;
+                              });
+                              surveyProvider
+                                  .fetchSurveyQuestions(currentSegment);
+                            },
+                            icon: const Icon(
+                              Icons.arrow_forward,
+                              color: Color.fromARGB(255, 153, 182, 160),
+                            ),
+                            label: const Text("Next",
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255))),
+                          ),
+                        if (currentSegment == 4)
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              if (filteredQuestions.any((q) => !surveyProvider
+                                  .responses
+                                  .containsKey(q.id))) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Please answer all questions before submitting.")),
+                                );
+                                return;
+                              }
+                              _submitSurvey(surveyProvider);
+                            },
+                            icon: const Icon(
+                              Icons.check,
+                              color: Color.fromARGB(255, 153, 182, 160),
+                            ),
+                            label: const Text("Submit",
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255))),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
