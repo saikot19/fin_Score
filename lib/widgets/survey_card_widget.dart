@@ -82,7 +82,7 @@ class SurveyDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Survey Details"),
+        title: const Text("Survey Details"),
         backgroundColor: const Color.fromARGB(255, 1, 16, 43),
       ),
       body: Center(
@@ -120,9 +120,6 @@ class SurveyDetailScreen extends StatelessWidget {
                   Text("Start Date: ${survey['start_date']}", style: textStyle),
                   const SizedBox(height: 10),
                   Text("Completion Date: ${survey['completion_date']}",
-                      style: textStyle),
-                  const SizedBox(height: 10),
-                  Text("Score Total: ${survey['scoreTotal']}",
                       style: textStyle),
                   const SizedBox(height: 10),
                   Text(

@@ -116,8 +116,9 @@ class ApiService {
   }
 
   /// Fetch Completed Surveys
-  Future<List<Map<String, dynamic>>> fetchCompletedSurveys(int branchId) async {
-    final url = Uri.parse('$baseUrl/surveyeListByBranchId/$branchId/9999');
+  Future<List<Map<String, dynamic>>> fetchCompletedSurveys(
+      int branchId, int userId) async {
+    final url = Uri.parse('$baseUrl/surveyeListByBranchId/$branchId/$userId');
     debugPrint("Fetching Completed Surveys from URL: $url");
 
     try {
@@ -147,7 +148,7 @@ class ApiService {
 
   /// Fetch User Info
   Future<Map<String, dynamic>> fetchUserInfo() async {
-    final url = Uri.parse('$baseUrl/user/info');
+    final url = Uri.parse('$baseUrl/userInfo');
     debugPrint("Fetching User Info from URL: $url");
 
     try {
@@ -157,7 +158,7 @@ class ApiService {
         final Map<String, dynamic> data = json.decode(response.body);
         debugPrint("Fetched User Info: $data");
 
-        if (data['status'] == 'success' && data.containsKey('data')) {
+        if (data['success'] == 200 && data.containsKey('data')) {
           return data['data'];
         } else {
           debugPrint("Warning: No user info found");
@@ -195,7 +196,30 @@ class ApiService {
     return false;
   }
 
-  fetchTotalSurveyCount(int branchId) {}
+  Future<int> fetchTotalSurveyCount(int branchId) async {
+    final url = Uri.parse('$baseUrl/surveyCountByBranchId/$branchId');
+    debugPrint("Fetching Total Survey Count from URL: $url");
 
-  fetchSurveys() {}
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        debugPrint("Fetched Total Survey Count: $data");
+
+        if (data['success'] == 200 && data.containsKey('data')) {
+          return data['data']['total_surveys'];
+        } else {
+          debugPrint("Warning: No survey count found");
+        }
+      } else {
+        debugPrint(
+            "Failed to fetch total survey count. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching total survey count: $e");
+    }
+
+    return 0; // Return 0 if there's an issue
+  }
 }

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../widgets/survey_card_widget.dart';
+import '../state_management/survey_provider.dart';
 import 'form_screen.dart';
 
 class SurveyListScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> surveys;
-
-  const SurveyListScreen({Key? key, required this.surveys}) : super(key: key);
+  const SurveyListScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final surveyProvider = Provider.of<SurveyProvider>(context);
+    final surveys = surveyProvider.surveys;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -24,21 +27,28 @@ class SurveyListScreen extends StatelessWidget {
           color: Color.fromARGB(255, 153, 182, 160),
         ),
       ),
-      body: ListView.builder(
-        itemCount: surveys.length,
-        itemBuilder: (context, index) {
-          final survey = surveys[index];
-          return SurveyCard(
-            survey: survey,
-            index: index + 1, // SL No
-          );
-        },
-      ),
+      body: surveys.isNotEmpty
+          ? ListView.builder(
+              itemCount: surveys.length,
+              itemBuilder: (context, index) {
+                final survey = surveys[index];
+                return SurveyCard(
+                  survey: survey,
+                  index: index + 1, // SL No
+                );
+              },
+            )
+          : const Center(
+              child: Text(
+                "No completed surveys available.",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => FormScreen()),
+            MaterialPageRoute(builder: (context) => const FormScreen()),
           );
         },
         child: const Icon(Icons.add),

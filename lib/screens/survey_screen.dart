@@ -45,8 +45,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
     super.initState();
     currentSegment = widget.initialSegmentId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SurveyProvider>(context, listen: false)
-          .fetchSurveyQuestions(currentSegment);
+      _loadSurveyProgress();
     });
   }
 
@@ -142,20 +141,27 @@ class _SurveyScreenState extends State<SurveyScreen> {
         'surveyProgress',
         jsonEncode({
           'currentSegment': currentSegment,
-          'responses': surveyProvider.responses,
+          'responses': surveyProvider.responses
+              .map((key, value) => MapEntry(key.toString(), value)),
         }));
   }
 
-  Future<void> _loadSurveyProgress(SurveyProvider surveyProvider) async {
+  Future<void> _loadSurveyProgress() async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.containsKey('surveyProgress')) {
       final surveyProgress = jsonDecode(prefs.getString('surveyProgress')!);
       setState(() {
         currentSegment = surveyProgress['currentSegment'];
-        surveyProvider
-            .setResponses(Map<int, String>.from(surveyProgress['responses']));
+        Provider.of<SurveyProvider>(context, listen: false).setResponses(
+            Map<String, String>.from(surveyProgress['responses'])
+                .map((key, value) => MapEntry(int.parse(key), value)));
       });
-      surveyProvider.fetchSurveyQuestions(currentSegment);
+
+      Provider.of<SurveyProvider>(context, listen: false)
+          .fetchSurveyQuestions(currentSegment);
+    } else {
+      Provider.of<SurveyProvider>(context, listen: false)
+          .fetchSurveyQuestions(currentSegment);
     }
   }
 
@@ -184,6 +190,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
                   SurveyTracker(
                     currentSegment: currentSegment,
                     totalSegments: segmentNames.length,
+                    segmentNames:
+                        segmentNames, // Pass the segmentNames parameter
                   ),
                   Expanded(
                     child: filteredQuestions.isNotEmpty

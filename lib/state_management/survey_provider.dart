@@ -56,12 +56,13 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchSurveys(int branchId) async {
+  Future<void> fetchSurveys(int branchId, int userId) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await _apiService.fetchCompletedSurveys(branchId);
+      final response =
+          await _apiService.fetchCompletedSurveys(branchId, userId);
       _surveys = response;
       notifyListeners();
     } catch (e) {
@@ -72,7 +73,7 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchSurveyCount(int branchId) async {
+  Future<void> fetchSurveyCount(int branchId, int userId) async {
     _isLoading = true;
     notifyListeners();
 
@@ -152,6 +153,4 @@ class SurveyProvider extends ChangeNotifier {
       debugPrint("Failed to submit survey.");
     }
   }
-
-  void setSurveys(surveys) {}
 }

@@ -15,7 +15,7 @@ class UserInfoCard extends StatelessWidget {
     return FadeIn(
       child: Card(
         margin: const EdgeInsets.all(10),
-        color: const Color.fromARGB(255, 178, 201, 226),
+        color: const Color.fromARGB(255, 255, 255, 255),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),

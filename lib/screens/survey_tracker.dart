@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class SurveyTracker extends StatelessWidget {
   final int currentSegment;
   final int totalSegments;
+  final Map<int, String> segmentNames;
 
   const SurveyTracker({
     Key? key,
     required this.currentSegment,
     required this.totalSegments,
+    required this.segmentNames,
   }) : super(key: key);
 
   @override
@@ -56,17 +58,22 @@ class SurveyTracker extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(totalSegments, (index) {
-              return Text(
-                "Step ${index + 1}",
+              final segmentIndex = index + 1;
+              final isCurrentSegment = currentSegment == segmentIndex;
+              final segmentName =
+                  segmentNames[segmentIndex] ?? "Segment $segmentIndex";
+
+              return AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 500),
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: currentSegment == (index + 1)
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  color: currentSegment == (index + 1)
-                      ? Colors.green[800]
-                      : Colors.grey[600],
+                  fontWeight:
+                      isCurrentSegment ? FontWeight.bold : FontWeight.normal,
+                  color: isCurrentSegment
+                      ? const Color.fromARGB(255, 8, 2, 32)
+                      : Colors.green[800],
                 ),
+                child: Text(segmentName),
               );
             }),
           ),
