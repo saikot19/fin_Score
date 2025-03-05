@@ -10,13 +10,35 @@ class SurveyProvider extends ChangeNotifier {
   Map<int, String> _responses =
       {}; // Stores responses as (questionId -> selected option)
   bool _isLoading = false;
-  int _totalCompletedSurveys = 0;
+  Map<String, dynamic>? _userInfo; // Store user info
 
   List<Question> get questions => _surveyQuestions;
   List<Map<String, dynamic>> get surveys => _surveys;
   Map<int, String> get responses => _responses;
   bool get isLoading => _isLoading;
-  int get totalCompletedSurveys => _totalCompletedSurveys;
+  int get totalCompletedSurveys => _surveys.length;
+  ApiService get apiService => _apiService; // Add getter for ApiService
+  Map<String, dynamic>? get userInfo => _userInfo; // Add getter for userInfo
+
+  Future<void> login(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.login(email, password);
+      if (response != null) {
+        _userInfo = response;
+        notifyListeners();
+      } else {
+        debugPrint("Login failed.");
+      }
+    } catch (e) {
+      debugPrint("Error during login: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
     _isLoading = true;
@@ -56,33 +78,24 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchSurveys(int branchId, int userId) async {
+  Future<void> fetchSurveys() async {
+    if (_userInfo == null) {
+      debugPrint("User info is not available.");
+      return;
+    }
+
+    final branchId = _userInfo!['branch_id'];
+    final userId = _userInfo!['user_id'];
+
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response =
-          await _apiService.fetchCompletedSurveys(branchId, userId);
+      final response = await _apiService.fetchSurveyList(userId, branchId);
       _surveys = response;
       notifyListeners();
     } catch (e) {
       debugPrint("Error fetching surveys: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> fetchSurveyCount(int branchId, int userId) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      _totalCompletedSurveys =
-          await _apiService.fetchTotalSurveyCount(branchId);
-      notifyListeners();
-    } catch (e) {
-      debugPrint("Error fetching survey count: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -112,8 +125,15 @@ class SurveyProvider extends ChangeNotifier {
     return totalScore;
   }
 
-  Future<void> submitSurvey(String memberId, String memberName, int branchId,
+  Future<void> submitSurvey(String memberId, String memberName,
       double loanAmount, String startDate, String completionDate) async {
+    if (_userInfo == null) {
+      debugPrint("User info is not available.");
+      return;
+    }
+
+    final branchId = _userInfo!['branch_id'];
+
     Map<String, dynamic> surveyResponse = {
       "member_id": memberId,
       "member_name": memberName,
@@ -122,9 +142,9 @@ class SurveyProvider extends ChangeNotifier {
       "start_date": startDate,
       "completion_date": completionDate,
       "status": 1, // Set status to 1
-      "questions": {
+      "questions": [
         for (var entry in _responses.entries)
-          entry.key.toString(): {
+          {
             "question_id": entry.key,
             "answer_id": _surveyQuestions
                 .firstWhere((q) => q.id == entry.key)
@@ -137,7 +157,7 @@ class SurveyProvider extends ChangeNotifier {
                 .firstWhere((a) => a.answerBangla == entry.value)
                 .score,
           }
-      },
+      ],
     };
 
     // Convert survey response to JSON string

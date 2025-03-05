@@ -40,7 +40,7 @@ class SurveyCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Member Name: ${survey['member_name']}",
+                "Member ID: ${survey['member_id']}",
                 style: textStyle.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -48,7 +48,7 @@ class SurveyCard extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                "Branch Name: ${survey['branch_name']}",
+                "Completion Date: ${survey['completion_date']}",
                 style: textStyle.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -128,10 +128,6 @@ class SurveyDetailScreen extends StatelessWidget {
                         color:
                             survey['status'] == 2 ? Colors.green : Colors.red,
                       )),
-                  const SizedBox(height: 10),
-                  Text("Created At: ${survey['created_at']}", style: textStyle),
-                  const SizedBox(height: 10),
-                  Text("Updated At: ${survey['updated_at']}", style: textStyle),
                 ],
               ),
             ),

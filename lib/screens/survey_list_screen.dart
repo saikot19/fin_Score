@@ -28,15 +28,20 @@ class SurveyListScreen extends StatelessWidget {
         ),
       ),
       body: surveys.isNotEmpty
-          ? ListView.builder(
-              itemCount: surveys.length,
-              itemBuilder: (context, index) {
-                final survey = surveys[index];
-                return SurveyCard(
-                  survey: survey,
-                  index: index + 1, // SL No
-                );
+          ? RefreshIndicator(
+              onRefresh: () async {
+                await surveyProvider.fetchSurveys();
               },
+              child: ListView.builder(
+                itemCount: surveys.length,
+                itemBuilder: (context, index) {
+                  final survey = surveys[index];
+                  return SurveyCard(
+                    survey: survey,
+                    index: index + 1, // SL No
+                  );
+                },
+              ),
             )
           : const Center(
               child: Text(

@@ -6,27 +6,34 @@ class ApiService {
   final String baseUrl = 'http://4.194.252.166/credit-scroring/api/v1';
 
   /// User Login API
-  Future<Map<String, dynamic>?> login(String username, String password) async {
+  Future<Map<String, dynamic>?> login(String email, String password) async {
     final url = Uri.parse('$baseUrl/login');
+    debugPrint("Logging in with URL: $url");
 
     try {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": username, "password": password}),
+        body: jsonEncode({"email": email, "password": password}),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        if (data.containsKey('data')) {
+        debugPrint("Login Response: $data");
+
+        if (data['success'] == 200 && data.containsKey('data')) {
           return data['data'];
+        } else {
+          debugPrint("Warning: Login failed or invalid response structure");
         }
+      } else {
+        debugPrint("Failed to login. Status: ${response.statusCode}");
       }
-      debugPrint("Login Failed: ${response.body}");
     } catch (e) {
-      debugPrint("Login API Error: $e");
+      debugPrint("Error logging in: $e");
     }
-    return null;
+
+    return null; // Return null if there's an issue
   }
 
   /// Fetch Survey Questions based on `segmentId`
@@ -116,13 +123,17 @@ class ApiService {
   }
 
   /// Fetch Completed Surveys
-  Future<List<Map<String, dynamic>>> fetchCompletedSurveys(
-      int branchId, int userId) async {
-    final url = Uri.parse('$baseUrl/surveyeListByBranchId/$branchId/$userId');
+  Future<List<Map<String, dynamic>>> fetchSurveyList(
+      int userId, int branchId) async {
+    final url = Uri.parse('$baseUrl/surveyeListByBranchId');
     debugPrint("Fetching Completed Surveys from URL: $url");
 
     try {
-      final response = await http.get(url);
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"user_id": userId, "branch_id": branchId}),
+      );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -171,55 +182,5 @@ class ApiService {
     }
 
     return {}; // Return an empty map if there's an issue
-  }
-
-  /// Update User Info
-  Future<bool> updateUserInfo(String userName, String branchName) async {
-    final url = Uri.parse('$baseUrl/user/update');
-    debugPrint("Updating User Info at URL: $url");
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"user_name": userName, "branch_name": branchName}),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        debugPrint("User Info Update Failed: ${response.body}");
-      }
-    } catch (e) {
-      debugPrint("Error updating user info: $e");
-    }
-    return false;
-  }
-
-  Future<int> fetchTotalSurveyCount(int branchId) async {
-    final url = Uri.parse('$baseUrl/surveyCountByBranchId/$branchId');
-    debugPrint("Fetching Total Survey Count from URL: $url");
-
-    try {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        debugPrint("Fetched Total Survey Count: $data");
-
-        if (data['success'] == 200 && data.containsKey('data')) {
-          return data['data']['total_surveys'];
-        } else {
-          debugPrint("Warning: No survey count found");
-        }
-      } else {
-        debugPrint(
-            "Failed to fetch total survey count. Status: ${response.statusCode}");
-      }
-    } catch (e) {
-      debugPrint("Error fetching total survey count: $e");
-    }
-
-    return 0; // Return 0 if there's an issue
   }
 }

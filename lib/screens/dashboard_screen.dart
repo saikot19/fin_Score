@@ -5,10 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
 import '../widgets/user_info_card_widget.dart';
 import 'form_screen.dart';
-import 'survey_list_screen.dart'
-    as survey_list; // Import SurveyListScreen with alias
+import 'survey_list_screen.dart' as survey_list;
 import 'package:animate_do/animate_do.dart';
-import '../services/api_service.dart'; // Import ApiService
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -19,59 +17,54 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<void> _fetchSurveysFuture;
-  final ApiService _apiService =
-      ApiService(); // Create an instance of ApiService
 
   @override
   void initState() {
     super.initState();
-    _fetchSurveysFuture = _fetchSurveys();
+    _fetchSurveysFuture = _loginAndFetchSurveys();
   }
 
-  Future<void> _fetchSurveys() async {
+  Future<void> _loginAndFetchSurveys() async {
     try {
-      // Fetch branchId and userId from the API
-      final userInfo = await _apiService.fetchUserInfo();
-      final branchId = userInfo['branch_id'];
-      final userId = userInfo['user_id'];
-
       final surveyProvider =
           Provider.of<SurveyProvider>(context, listen: false);
-      await surveyProvider.fetchSurveys(branchId, userId);
+      await surveyProvider.login(
+          "bm35", "123456"); // Replace with actual login credentials
+      await surveyProvider.fetchSurveys();
     } catch (e) {
-      debugPrint("Error fetching user info: $e");
+      debugPrint("Error during login and fetching surveys: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => SurveyProvider(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Home",
-            style: GoogleFonts.lexendDeca(
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 255, 255, 255)),
-          ),
-          backgroundColor: const Color.fromARGB(255, 1, 16, 43),
-          elevation: 0,
-          iconTheme: const IconThemeData(
-            color: Color.fromARGB(255, 153, 182, 160),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Home",
+          style: GoogleFonts.lexendDeca(
+              fontWeight: FontWeight.bold,
+              color: const Color.fromARGB(255, 255, 255, 255)),
         ),
-        body: FutureBuilder<void>(
-          future: _fetchSurveysFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            } else {
-              return Column(
+        backgroundColor: const Color.fromARGB(255, 1, 16, 43),
+        elevation: 0,
+        iconTheme: const IconThemeData(
+          color: Color.fromARGB(255, 153, 182, 160),
+        ),
+      ),
+      body: FutureBuilder<void>(
+        future: _fetchSurveysFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          } else {
+            return RefreshIndicator(
+              onRefresh: _loginAndFetchSurveys,
+              child: Column(
                 children: [
-                  const UserInfoCard(), // Added UserInfoCard at the top
+                  const UserInfoCard(),
                   const SizedBox(height: 20),
                   GestureDetector(
                     onTap: () {
@@ -81,14 +74,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           builder: (context) => ChangeNotifierProvider.value(
                             value: Provider.of<SurveyProvider>(context,
                                 listen: false),
-                            child: const survey_list
-                                .SurveyListScreen(), // Use alias
+                            child: const survey_list.SurveyListScreen(),
                           ),
                         ),
                       );
                     },
-                    child:
-                        const SurveyOverviewWidget(), // Added SurveyOverviewWidget
+                    child: const SurveyOverviewWidget(),
                   ),
                   const SizedBox(height: 20),
                   Padding(
@@ -127,10 +118,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const Spacer(),
                 ],
-              );
-            }
-          },
-        ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
