@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class UserProvider extends ChangeNotifier {
-  Map<String, dynamic> _userInfo = {};
+  Map<String, dynamic>? _userInfo;
 
-  Map<String, dynamic> get userInfo => _userInfo;
+  Map<String, dynamic>? get userInfo => _userInfo;
 
   void login(int userId, int branchId, String userName, String branchName) {
     _userInfo = {
@@ -16,7 +16,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   void logout() {
-    _userInfo = {};
+    _userInfo = null;
     notifyListeners();
   }
 }

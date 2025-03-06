@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/api_service.dart';
 import '../state_management/user_provider.dart';
+import '../state_management/survey_provider.dart'; // Import SurveyProvider
 import 'dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -71,9 +72,13 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
         userData['user_name'],
         userData['branch_name'],
       );
-      Navigator.pushReplacement(
+      Navigator.pushReplacementNamed(
         context,
-        MaterialPageRoute(builder: (context) => DashboardScreen()),
+        '/dashboard',
+        arguments: {
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
+        },
       );
     } else {
       setState(() => showCross = true);
@@ -96,7 +101,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color.fromARGB(255, 52, 32, 124),
+                  const Color(0xFF022873),
                   const Color.fromARGB(255, 0, 0, 0)
                 ],
               ),

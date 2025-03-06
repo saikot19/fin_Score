@@ -34,10 +34,24 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       initialRoute: '/splashlogin', // Starts with Splash-Login merged screen
+      onGenerateRoute: (settings) {
+        if (settings.name == '/dashboard') {
+          final args = settings.arguments as Map<String, String>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return DashboardScreen(
+                email: args['email']!,
+                password: args['password']!,
+              );
+            },
+          );
+        }
+        // Add other routes here if needed
+        return null;
+      },
       routes: {
         '/splashlogin': (context) =>
             const SplashLoginScreen(), // Updated screen
-        '/dashboard': (context) => DashboardScreen(),
         '/profile': (context) => ProfileScreen(),
         '/form': (context) => FormScreen(),
         '/score_summary': (context) =>

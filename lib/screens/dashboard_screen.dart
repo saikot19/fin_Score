@@ -9,7 +9,11 @@ import 'survey_list_screen.dart' as survey_list;
 import 'package:animate_do/animate_do.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final String email;
+  final String password;
+
+  const DashboardScreen({Key? key, required this.email, required this.password})
+      : super(key: key);
 
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
@@ -28,11 +32,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final surveyProvider =
           Provider.of<SurveyProvider>(context, listen: false);
-      await surveyProvider.login(
-          "bm35", "123456"); // Replace with actual login credentials
-      await surveyProvider.fetchSurveys();
+      await surveyProvider.login(widget.email, widget.password);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        surveyProvider.fetchSurveys();
+      });
     } catch (e) {
       debugPrint("Error during login and fetching surveys: $e");
+    }
+  }
+
+  Future<void> _refreshSurveys() async {
+    try {
+      final surveyProvider =
+          Provider.of<SurveyProvider>(context, listen: false);
+      await surveyProvider.refreshSurveys();
+    } catch (e) {
+      debugPrint("Error during refreshing surveys: $e");
     }
   }
 
@@ -61,8 +76,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return Center(child: Text("Error: ${snapshot.error}"));
           } else {
             return RefreshIndicator(
-              onRefresh: _loginAndFetchSurveys,
-              child: Column(
+              onRefresh: _refreshSurveys,
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
                 children: [
                   const UserInfoCard(),
                   const SizedBox(height: 20),
@@ -82,41 +98,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: const SurveyOverviewWidget(),
                   ),
                   const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const FormScreen()),
-                            );
-                          },
-                          icon: const Icon(Icons.add, color: Colors.white),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade800,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 80, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const FormScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade800,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 80, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          label: Text(
-                            "Add Survey",
-                            style: GoogleFonts.lexendDeca(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        ),
+                        label: Text(
+                          "Add Survey",
+                          style: GoogleFonts.lexendDeca(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 20),
                 ],
               ),
             );

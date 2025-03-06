@@ -65,8 +65,11 @@ class _FormScreenState extends State<FormScreen> {
               _buildTextField(memberNameController, "সদস্যর নাম", Icons.person,
                   TextInputType.text),
               const SizedBox(height: 20),
-              _buildTextField(loanAmountController, "আবেদনকৃত ঋণের পরিমাণ",
-                  Icons.attach_money, TextInputType.number),
+              _buildTextFieldWithImageIcon(
+                  loanAmountController,
+                  "আবেদনকৃত ঋণের পরিমাণ",
+                  "assets/logo/taka.png",
+                  TextInputType.number),
               const SizedBox(height: 20),
               _buildDatePickerField(),
               const SizedBox(height: 30),
@@ -107,6 +110,32 @@ class _FormScreenState extends State<FormScreen> {
         controller: controller,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: Colors.black54),
+          labelText: label,
+          labelStyle: GoogleFonts.lexendDeca(color: Colors.black54),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: const BorderSide(color: Colors.black54),
+          ),
+        ),
+        keyboardType: keyboardType,
+        style: GoogleFonts.lexendDeca(color: Colors.black),
+      ),
+    );
+  }
+
+  Widget _buildTextFieldWithImageIcon(
+      TextEditingController controller, String label, String imagePath,
+      [TextInputType keyboardType = TextInputType.text]) {
+    return FadeInLeft(
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Image.asset(imagePath, width: 24, height: 24),
+          ),
           labelText: label,
           labelStyle: GoogleFonts.lexendDeca(color: Colors.black54),
           filled: true,

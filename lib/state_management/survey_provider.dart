@@ -28,6 +28,7 @@ class SurveyProvider extends ChangeNotifier {
       final response = await _apiService.login(email, password);
       if (response != null) {
         _userInfo = response;
+        _clearSessionData(); // Clear session data when a new user logs in
         notifyListeners();
       } else {
         debugPrint("Login failed.");
@@ -38,6 +39,12 @@ class SurveyProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _clearSessionData() {
+    _surveyQuestions = [];
+    _surveys = [];
+    _responses = {};
   }
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
@@ -172,5 +179,9 @@ class SurveyProvider extends ChangeNotifier {
     } else {
       debugPrint("Failed to submit survey.");
     }
+  }
+
+  Future<void> refreshSurveys() async {
+    await fetchSurveys();
   }
 }

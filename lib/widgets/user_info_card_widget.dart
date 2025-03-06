@@ -30,10 +30,10 @@ class UserInfoCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                    child: Icon(
+                    child: const Icon(
                       Icons.person,
                       size: 40,
-                      color: const Color.fromARGB(255, 0, 0, 0),
+                      color: Color.fromARGB(255, 0, 0, 0),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -45,11 +45,19 @@ class UserInfoCard extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                    onPressed: () {
+                      userProvider.logout();
+                      Navigator.pushReplacementNamed(context, '/splashlogin');
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
-                "User Name: ${userInfo['user_name'] ?? ''}",
+                "Name: ${userInfo?['user_name'] ?? 'N/A'}",
                 style: GoogleFonts.lexendDeca(
                   fontSize: 16,
                   color: Colors.black,
@@ -57,23 +65,7 @@ class UserInfoCard extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                "Branch Name: ${userInfo['branch_name'] ?? ''}",
-                style: GoogleFonts.lexendDeca(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                "User ID: ${userInfo['user_id'] ?? ''}",
-                style: GoogleFonts.lexendDeca(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                "Branch ID: ${userInfo['branch_id'] ?? ''}",
+                "Branch: ${userInfo?['branch_name'] ?? 'N/A'}",
                 style: GoogleFonts.lexendDeca(
                   fontSize: 16,
                   color: Colors.black,
