@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
+import '../state_management/user_provider.dart'; // Import UserProvider
 import 'survey_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import '../services/api_service.dart';
@@ -59,17 +61,27 @@ class _FormScreenState extends State<FormScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTextField(memberIdController, "সদস্যর আইডি নম্বর",
-                  Icons.perm_identity, TextInputType.number),
+              _buildTextField(
+                memberIdController,
+                "সদস্যর আইডি নম্বর",
+                Icons.perm_identity,
+                TextInputType.number,
+                [LengthLimitingTextInputFormatter(12)], // Limit to 12 digits
+              ),
               const SizedBox(height: 20),
-              _buildTextField(memberNameController, "সদস্যর নাম", Icons.person,
-                  TextInputType.text),
+              _buildTextField(
+                memberNameController,
+                "সদস্যর নাম",
+                Icons.person,
+                TextInputType.text,
+              ),
               const SizedBox(height: 20),
               _buildTextFieldWithImageIcon(
-                  loanAmountController,
-                  "আবেদনকৃত ঋণের পরিমাণ",
-                  "assets/logo/taka.png",
-                  TextInputType.number),
+                loanAmountController,
+                "আবেদনকৃত ঋণের পরিমাণ",
+                "assets/logo/taka.png",
+                TextInputType.number,
+              ),
               const SizedBox(height: 20),
               _buildDatePickerField(),
               const SizedBox(height: 30),
@@ -103,8 +115,12 @@ class _FormScreenState extends State<FormScreen> {
   }
 
   Widget _buildTextField(
-      TextEditingController controller, String label, IconData icon,
-      [TextInputType keyboardType = TextInputType.text]) {
+    TextEditingController controller,
+    String label,
+    IconData icon, [
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  ]) {
     return FadeInLeft(
       child: TextField(
         controller: controller,
@@ -121,13 +137,17 @@ class _FormScreenState extends State<FormScreen> {
         ),
         keyboardType: keyboardType,
         style: GoogleFonts.lexendDeca(color: Colors.black),
+        inputFormatters: inputFormatters,
       ),
     );
   }
 
   Widget _buildTextFieldWithImageIcon(
-      TextEditingController controller, String label, String imagePath,
-      [TextInputType keyboardType = TextInputType.text]) {
+    TextEditingController controller,
+    String label,
+    String imagePath, [
+    TextInputType keyboardType = TextInputType.text,
+  ]) {
     return FadeInLeft(
       child: TextField(
         controller: controller,
@@ -231,14 +251,22 @@ class _FormScreenState extends State<FormScreen> {
         debugPrint("Loan Amount: $loanAmount");
         debugPrint("Loan Date: $loanDate");
 
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final branchId = userProvider.userInfo?['branch_id'];
+
+        // Clear previous survey responses
+        final surveyProvider =
+            Provider.of<SurveyProvider>(context, listen: false);
+        surveyProvider.clearResponses();
+
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => SurveyScreen(
               memberId: memberId,
               memberName: memberName,
-              branchId:
-                  2, // Replace with actual branch ID from login API response
+              branchId: branchId ??
+                  0, // Replace with actual branch ID from login API response
               loanAmount: loanAmount,
               loanDate: loanDate, // Pass loan date if needed
               initialSegmentId: 1, // Start from the first segment

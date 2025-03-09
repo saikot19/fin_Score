@@ -184,4 +184,9 @@ class SurveyProvider extends ChangeNotifier {
   Future<void> refreshSurveys() async {
     await fetchSurveys();
   }
+
+  void clearResponses() {
+    _responses.clear();
+    notifyListeners();
+  }
 }

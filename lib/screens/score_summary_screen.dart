@@ -64,7 +64,7 @@ class ScoreSummaryScreen extends StatelessWidget {
             ),
             SizedBox(height: screenHeight * 0.05),
             Text(
-              "You will be redirected to the dashboard shortly\nor click here to return to the dashboard",
+              "click here to return to the dashboard",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.black54,
