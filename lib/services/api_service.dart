@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://4.194.252.166/credit-scroring/api/v1';
+  final String baseUrl = 'https://finscore.cdipits.com/api/v1';
 
   /// User Login API
   Future<Map<String, dynamic>?> login(String email, String password) async {
@@ -26,6 +26,8 @@ class ApiService {
         } else {
           debugPrint("Warning: Login failed or invalid response structure");
         }
+      } else if (response.statusCode == 401) {
+        debugPrint("Invalid email or password");
       } else {
         debugPrint("Failed to login. Status: ${response.statusCode}");
       }

@@ -48,7 +48,7 @@ class SurveyCard extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                "Completion Date: ${survey['completion_date']}",
+                "Disburse Date: ${survey['start_date']}",
                 style: textStyle.copyWith(
                   color: Colors.grey[600],
                 ),
@@ -117,9 +117,7 @@ class SurveyDetailScreen extends StatelessWidget {
                   Text("Applied Loan Amount: ${survey['applied_loan_amount']}",
                       style: textStyle),
                   const SizedBox(height: 10),
-                  Text("Start Date: ${survey['start_date']}", style: textStyle),
-                  const SizedBox(height: 10),
-                  Text("Completion Date: ${survey['completion_date']}",
+                  Text("Disburse Date: ${survey['start_date']}",
                       style: textStyle),
                   const SizedBox(height: 10),
                   Text(

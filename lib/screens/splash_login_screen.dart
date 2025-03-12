@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/api_service.dart';
 import '../state_management/user_provider.dart';
-import '../state_management/survey_provider.dart'; // Import SurveyProvider
-import 'dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SplashLoginScreen extends StatefulWidget {
@@ -25,6 +23,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  bool _isLoginButtonEnabled = false;
 
   @override
   void initState() {
@@ -43,18 +42,29 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
     Future.delayed(const Duration(seconds: 3), () {
       setState(() => showLoginScreen = true);
     });
+
+    emailController.addListener(_validateInput);
+    passwordController.addListener(_validateInput);
+  }
+
+  void _validateInput() {
+    setState(() {
+      _isLoginButtonEnabled =
+          emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     setState(() => isLoading = true);
-
-    final apiService = ApiService(); // Create an instance of ApiService
+    final apiService = ApiService();
 
     final userData = await apiService.login(
       emailController.text.trim(),
@@ -96,14 +106,11 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  const Color(0xFF022873),
-                  const Color.fromARGB(255, 0, 0, 0)
-                ],
+                colors: [Color(0xFF022873), Colors.black],
               ),
             ),
           ),
@@ -126,35 +133,22 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                 Image.asset('assets/logo/PNG transparent-8.png', height: 250),
           ),
           const SizedBox(height: 30),
-          SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.5), // Start slightly lower
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: _controller,
-              curve: Curves.easeOut,
-            )),
-            child: Opacity(
-              opacity: 0.7,
-              child: Column(
-                children: [
-                  Text(
-                    "V.1.0.1",
-                    style: GoogleFonts.lexendDeca(
-                      fontSize: 10,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "Copyright © 2025, CDIP ITS",
-                    style: GoogleFonts.lexendDeca(
-                      fontSize: 10,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+          Opacity(
+            opacity: 0.7,
+            child: Column(
+              children: [
+                Text(
+                  "V.1.1.0",
+                  style:
+                      GoogleFonts.lexendDeca(fontSize: 10, color: Colors.white),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  "Copyright © 2025, CDIP ITS",
+                  style:
+                      GoogleFonts.lexendDeca(fontSize: 10, color: Colors.white),
+                ),
+              ],
             ),
           ),
         ],
@@ -163,6 +157,8 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
   }
 
   Widget _buildLoginScreen() {
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +166,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
           FadeTransition(
             opacity: _formAnimation,
             child:
-                Image.asset('assets/logo/PNG transparent-8.png', height: 250),
+                Image.asset('assets/logo/PNG transparent-8.png', height: 200),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -180,20 +176,16 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                 SlideEffect(begin: Offset(0, 1), end: Offset(0, 0))
               ],
               child: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                padding: const EdgeInsets.all(20),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 50),
                     Text(
                       "Login",
                       style: GoogleFonts.lexendDeca(
@@ -205,12 +197,12 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                     const SizedBox(height: 20),
                     TextField(
                       controller: emailController,
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         prefixIcon:
                             const Icon(Icons.email, color: Colors.black54),
                         labelText: "User Name",
-                        labelStyle: GoogleFonts.lexendDeca(
-                            fontWeight: FontWeight.normal),
+                        labelStyle: GoogleFonts.lexendDeca(),
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
@@ -218,18 +210,17 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      style: GoogleFonts.lexendDeca(color: Colors.black),
                     ),
                     const SizedBox(height: 20),
                     TextField(
                       controller: passwordController,
                       obscureText: true,
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         prefixIcon:
                             const Icon(Icons.lock, color: Colors.black54),
                         labelText: "Password",
-                        labelStyle: GoogleFonts.lexendDeca(
-                            fontWeight: FontWeight.normal),
+                        labelStyle: GoogleFonts.lexendDeca(),
                         filled: true,
                         fillColor: Colors.grey[200],
                         border: OutlineInputBorder(
@@ -237,27 +228,28 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      style: GoogleFonts.lexendDeca(color: Colors.black),
                     ),
                     const SizedBox(height: 30),
-                    isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                            onPressed: _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green.shade800,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 100, vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: Text("Login",
-                                style: GoogleFonts.lexendDeca(
-                                    fontWeight: FontWeight.bold,
-                                    textStyle:
-                                        const TextStyle(color: Colors.white))),
+                    SizedBox(
+                      width: screenWidth * 0.8,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoginButtonEnabled ? _login : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade800,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
+                        ),
+                        child: Text(
+                          "Login",
+                          style: GoogleFonts.lexendDeca(
+                            fontWeight: FontWeight.bold,
+                            textStyle: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 20),
                     if (showTick)
                       const Icon(Icons.check_circle,
