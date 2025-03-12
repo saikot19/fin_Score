@@ -1,52 +1,61 @@
-import 'package:finscore/screens/components/log_in_form.dart';
+import 'package:finscore/screens/splash_login_screen.dart';
+import 'package:finscore/screens/survey_screen.dart';
+import 'package:finscore/screens/dashboard_screen.dart';
+import 'package:finscore/screens/profile_screen.dart';
+import 'package:finscore/screens/form_screen.dart';
+import 'package:finscore/screens/score_summary_screen.dart'; // Added score summary screen
+import 'package:finscore/state_management/user_provider.dart';
+import 'package:finscore/state_management/survey_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'api/auth_service.dart';
-import 'screens/splash_screen.dart';
-import '../screens/survey_page.dart';
+import 'package:provider/provider.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SharedPreferences.getInstance();
-  final authService = AuthService();
-  final isLoggedIn = await authService.isLoggedIn(); // Check if logged in
-  runApp(FinScoreApp(isLoggedIn: isLoggedIn));
+void main() {
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(
+            create: (_) => SurveyProvider()), // ✅ Global Provider
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
-class FinScoreApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  const FinScoreApp({super.key, required this.isLoggedIn});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FinScore',
+      debugShowCheckedModeBanner: false,
+      title: 'Survey App',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: const Color(0xFF4CAF50),
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-          bodyLarge: TextStyle(fontSize: 16, color: Colors.white),
-          bodyMedium: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4CAF50),
-            foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle:
-                const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
+        primaryColor: const Color.fromARGB(255, 5, 9, 34),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
-      home: SplashScreen(isLoggedIn: isLoggedIn),
+      initialRoute: '/splashlogin', // Starts with Splash-Login merged screen
+      onGenerateRoute: (settings) {
+        if (settings.name == '/dashboard') {
+          final args = settings.arguments as Map<String, String>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return DashboardScreen(
+                email: args['email']!,
+                password: args['password']!,
+              );
+            },
+          );
+        }
+        // Add other routes here if needed
+        return null;
+      },
       routes: {
-        '/login': (context) => LogInForm(),
-        '/survey': (context) => SurveyPage(),
+        '/splashlogin': (context) =>
+            const SplashLoginScreen(), // Updated screen
+        '/profile': (context) => ProfileScreen(),
+        '/form': (context) => FormScreen(),
+        '/score_summary': (context) =>
+            const ScoreSummaryScreen(), // New route for score summary screen
       },
     );
   }

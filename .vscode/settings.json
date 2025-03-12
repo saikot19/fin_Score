@@ -1,0 +1,28 @@
+{
+    "folder-color.pathColors": [
+        {
+            "folderPath": "finscore\\lib\\models\\",
+            "color": "foldercolorizer.color_cc0099"
+        },
+        {
+            "folderPath": "finscore\\lib\\screens\\",
+            "color": "foldercolorizer.color_9966ff"
+        },
+        {
+            "folderPath": "finscore\\lib\\services\\",
+            "color": "foldercolorizer.color_006699"
+        },
+        {
+            "folderPath": "finscore\\lib\\state_management\\",
+            "color": "foldercolorizer.color_cc0099"
+        },
+        {
+            "folderPath": "finscore\\lib\\widgets\\",
+            "color": "foldercolorizer.color_cc99ff"
+        },
+        {
+            "folderPath": "finscore\\lib\\utils\\",
+            "color": "foldercolorizer.color_cccc00"
+        }
+    ]
+}
