@@ -3,10 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../state_management/survey_provider.dart';
-import '../state_management/user_provider.dart'; // Import UserProvider
+import '../state_management/user_provider.dart';
 import 'survey_screen.dart';
 import 'package:animate_do/animate_do.dart';
-import '../services/api_service.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({Key? key}) : super(key: key);
@@ -24,7 +23,6 @@ class _FormScreenState extends State<FormScreen> {
   @override
   void initState() {
     super.initState();
-    // Set the default date as the present date
     loanDateController.text =
         "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
   }
@@ -38,13 +36,11 @@ class _FormScreenState extends State<FormScreen> {
           title: Text(
             "Participant Details",
             style: GoogleFonts.lexendDeca(
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 255, 255, 255)),
+                fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          backgroundColor: const Color.fromARGB(255, 1, 16, 43),
+          backgroundColor: const Color(0xFF01102B),
           elevation: 0,
-          iconTheme:
-              const IconThemeData(color: Color.fromARGB(255, 255, 255, 255)),
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -53,35 +49,36 @@ class _FormScreenState extends State<FormScreen> {
             children: [
               FadeInDown(
                 child: Text(
-                  "Enter Applicant details",
+                  "Enter Applicant Details",
                   style: GoogleFonts.lexendDeca(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black),
+                      color: Colors.black54),
                 ),
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                memberIdController,
-                "সদস্যর আইডি নম্বর",
-                Icons.perm_identity,
-                TextInputType.number,
-                [LengthLimitingTextInputFormatter(12)], // Limit to 12 digits
+                controller: memberIdController,
+                label: "সদস্যর আইডি নম্বর",
+                icon: Icons.perm_identity,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(12),
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
               ),
               const SizedBox(height: 20),
               _buildTextField(
-                memberNameController,
-                "সদস্যর নাম",
-                Icons.person,
-                TextInputType.text,
+                controller: memberNameController,
+                label: "সদস্যর নাম",
+                icon: Icons.person,
+                keyboardType: TextInputType.text,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z\s]+$')),
+                ],
               ),
               const SizedBox(height: 20),
-              _buildTextFieldWithImageIcon(
-                loanAmountController,
-                "আবেদনকৃত ঋণের পরিমাণ",
-                "assets/logo/taka.png",
-                TextInputType.number,
-              ),
+              _buildLoanAmountField(),
               const SizedBox(height: 20),
               _buildDatePickerField(),
               const SizedBox(height: 30),
@@ -114,13 +111,13 @@ class _FormScreenState extends State<FormScreen> {
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon, [
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
-  ]) {
+  }) {
     return FadeInLeft(
       child: TextField(
         controller: controller,
@@ -142,21 +139,16 @@ class _FormScreenState extends State<FormScreen> {
     );
   }
 
-  Widget _buildTextFieldWithImageIcon(
-    TextEditingController controller,
-    String label,
-    String imagePath, [
-    TextInputType keyboardType = TextInputType.text,
-  ]) {
+  Widget _buildLoanAmountField() {
     return FadeInLeft(
       child: TextField(
-        controller: controller,
+        controller: loanAmountController,
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Image.asset(imagePath, width: 24, height: 24),
+            child: Image.asset("assets/logo/taka.png", width: 24, height: 24),
           ),
-          labelText: label,
+          labelText: "আবেদনকৃত ঋণের পরিমাণ",
           labelStyle: GoogleFonts.lexendDeca(color: Colors.black54),
           filled: true,
           fillColor: Colors.white,
@@ -164,11 +156,35 @@ class _FormScreenState extends State<FormScreen> {
             borderRadius: BorderRadius.circular(30),
             borderSide: const BorderSide(color: Colors.black54),
           ),
+          errorText: _validateLoanAmount(loanAmountController.text),
         ),
-        keyboardType: keyboardType,
+        keyboardType: TextInputType.number,
         style: GoogleFonts.lexendDeca(color: Colors.black),
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(7), // Restrict to 7 digits
+        ],
+        onChanged: (value) {
+          setState(() {
+            // Trigger validation on change
+          });
+        },
       ),
     );
+  }
+
+  String? _validateLoanAmount(String value) {
+    if (value.isEmpty) {
+      return "আবেদনকৃত ঋণের পরিমাণ ফাঁকা রাখা যাবে না"; // Loan amount cannot be empty
+    }
+    int amount = int.tryParse(value) ?? 0;
+    if (amount < 5000) {
+      return "আবেদনকৃত ঋণের পরিমাণ অন্তত ৫,000 BDT হতে হবে"; // Must be at least 5000 BDT
+    }
+    if (amount > 2500000) {
+      return "সর্বাধিক ঋণের পরিমাণ ২৫,00,000 BDT হতে পারে"; // Max limit is 25,00,000 BDT
+    }
+    return null; // No error
   }
 
   Widget _buildDatePickerField() {
@@ -213,76 +229,45 @@ class _FormScreenState extends State<FormScreen> {
     String memberName = memberNameController.text.trim();
     String loanDate = loanDateController.text.trim();
 
-    if (memberId.isNotEmpty &&
-        memberName.isNotEmpty &&
-        loanAmountController.text.isNotEmpty &&
-        loanDate.isNotEmpty) {
-      if (memberId.length != 12) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("সদস্যর আইডি নম্বর must be 12 digits.")),
-        );
-        return;
-      }
-
-      if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(memberName)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  "সদস্যর নাম cannot contain special characters or numbers.")),
-        );
-        return;
-      }
-
-      try {
-        double loanAmount = double.parse(loanAmountController.text.trim());
-        if (loanAmount < 5000) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content:
-                    Text("আবেদনকৃত ঋণের পরিমাণ must be more than 5000tk.")),
-          );
-          return;
-        }
-
-        // Log form fill-up response
-        debugPrint("Form Fill-up Response:");
-        debugPrint("Member ID: $memberId");
-        debugPrint("Member Name: $memberName");
-        debugPrint("Loan Amount: $loanAmount");
-        debugPrint("Loan Date: $loanDate");
-
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-        final branchId = userProvider.userInfo?['branch_id'];
-
-        // Clear previous survey responses
-        final surveyProvider =
-            Provider.of<SurveyProvider>(context, listen: false);
-        surveyProvider.clearResponses();
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SurveyScreen(
-              memberId: memberId,
-              memberName: memberName,
-              branchId: branchId ??
-                  0, // Replace with actual branch ID from login API response
-              loanAmount: loanAmount,
-              loanDate: loanDate, // Pass loan date if needed
-              initialSegmentId: 1, // Start from the first segment
-            ),
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Invalid input! Please check the fields.")),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all fields!")),
-      );
+    if (memberId.length != 12) {
+      _showError("সদস্যর আইডি নম্বর must be exactly 12 digits.");
+      return;
     }
+
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(memberName)) {
+      _showError("সদস্যর নাম cannot contain numbers or special characters.");
+      return;
+    }
+
+    int loanAmount = int.tryParse(loanAmountController.text.trim()) ?? 0;
+    if (loanAmount < 5000 || loanAmount > 2500000) {
+      _showError(
+          "আবেদনকৃত ঋণের পরিমাণ must be between 5,000 and 25,00,000 BDT.");
+      return;
+    }
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final branchId = userProvider.userInfo?['branch_id'] ?? 0;
+
+    Provider.of<SurveyProvider>(context, listen: false).clearResponses();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SurveyScreen(
+          memberId: memberId,
+          memberName: memberName,
+          branchId: branchId,
+          loanAmount: loanAmount.toDouble(),
+          loanDate: loanDate,
+          initialSegmentId: 1,
+        ),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
