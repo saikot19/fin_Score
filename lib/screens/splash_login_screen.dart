@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../state_management/user_provider.dart';
+import 'dashboard_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SplashLoginScreen extends StatefulWidget {
@@ -39,19 +41,10 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
     );
 
     _controller.forward();
-    Future.delayed(const Duration(seconds: 3), () {
-      setState(() => showLoginScreen = true);
-    });
+    _checkLoginStatus();
 
     emailController.addListener(_validateInput);
     passwordController.addListener(_validateInput);
-  }
-
-  void _validateInput() {
-    setState(() {
-      _isLoginButtonEnabled =
-          emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
-    });
   }
 
   @override
@@ -62,37 +55,72 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
     super.dispose();
   }
 
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    if (isLoggedIn) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DashboardScreen(
+            email: prefs.getString('userEmail') ?? '',
+            password: '',
+          ),
+        ),
+      );
+    } else {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!mounted) return;
+        setState(() => showLoginScreen = true);
+      });
+    }
+  }
+
+  void _validateInput() {
+    setState(() {
+      _isLoginButtonEnabled =
+          emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+    });
+  }
+
   Future<void> _login() async {
     setState(() => isLoading = true);
     final apiService = ApiService();
-
     final userData = await apiService.login(
       emailController.text.trim(),
       passwordController.text.trim(),
     );
 
     setState(() => isLoading = false);
-
     if (userData != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userEmail', emailController.text.trim());
+
       setState(() => showTick = true);
       await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
       Provider.of<UserProvider>(context, listen: false).login(
         userData['user_id'],
         userData['branch_id'],
         userData['user_name'],
         userData['branch_name'],
       );
-      Navigator.pushReplacementNamed(
+      Navigator.pushReplacement(
         context,
-        '/dashboard',
-        arguments: {
-          'email': emailController.text.trim(),
-          'password': passwordController.text.trim(),
-        },
+        MaterialPageRoute(
+          builder: (context) => DashboardScreen(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          ),
+        ),
       );
     } else {
       setState(() => showCross = true);
       await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
       setState(() => showCross = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login failed. Check your credentials!")),
@@ -103,6 +131,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           Container(

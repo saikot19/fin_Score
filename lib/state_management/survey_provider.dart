@@ -76,7 +76,7 @@ class SurveyProvider extends ChangeNotifier {
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
     _isLoading = true;
-    Future.microtask(() => notifyListeners()); // Prevent error
+    Future.microtask(() => notifyListeners()); // ✅ Prevent build-phase error
 
     try {
       final rawQuestions = await _apiService.fetchSurveyQuestions(segmentId);
@@ -93,7 +93,7 @@ class SurveyProvider extends ChangeNotifier {
       debugPrint("Error fetching questions: $e");
     } finally {
       _isLoading = false;
-      Future.microtask(() => notifyListeners()); // Prevent error
+      Future.microtask(() => notifyListeners()); // ✅ Prevent error
     }
   }
 
@@ -106,7 +106,7 @@ class SurveyProvider extends ChangeNotifier {
       final linkedQuestion = Question.fromJson(rawQuestion);
       _surveyQuestions.add(linkedQuestion);
 
-      Future.microtask(() => notifyListeners()); // Prevent error
+      Future.microtask(() => notifyListeners()); // ✅ Fix
     } catch (e) {
       debugPrint("Error fetching linked question: $e");
     }
@@ -122,17 +122,16 @@ class SurveyProvider extends ChangeNotifier {
     final userId = _userInfo!['user_id'];
 
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners()); // ✅ Fix
 
     try {
       final response = await _apiService.fetchSurveyList(userId, branchId);
       _surveys = response;
-      notifyListeners();
     } catch (e) {
       debugPrint("Error fetching surveys: $e");
     } finally {
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners()); // ✅ Fix
     }
   }
 

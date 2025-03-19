@@ -45,14 +45,6 @@ class UserInfoCard extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.red),
-                    onPressed: () {
-                      userProvider.logout();
-                      Navigator.pushReplacementNamed(context, '/splashlogin');
-                    },
-                  ),
                 ],
               ),
               const SizedBox(height: 10),
