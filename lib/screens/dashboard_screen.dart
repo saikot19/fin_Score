@@ -2,11 +2,12 @@ import 'package:finscore/widgets/survey_overview_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../state_management/survey_provider.dart';
 import '../widgets/user_info_card_widget.dart';
 import 'form_screen.dart';
 import 'survey_list_screen.dart' as survey_list;
-import 'package:animate_do/animate_do.dart';
+import 'splash_login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String email;
@@ -32,7 +33,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final surveyProvider =
           Provider.of<SurveyProvider>(context, listen: false);
-      await surveyProvider.login(widget.email, widget.password);
+
+      // Check if already logged in to avoid unnecessary API calls
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+      if (!isLoggedIn) {
+        await surveyProvider.login(widget.email, widget.password);
+        await prefs.setBool('isLoggedIn', true); // Persist login
+      }
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         surveyProvider.fetchSurveys();
       });
@@ -51,12 +61,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isLoggedIn'); // Clear login state
+    await prefs.remove('email'); // Remove stored email
+    await prefs.remove('password'); // Remove stored password
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SplashLoginScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Home",
+          "Dashboard",
           style: GoogleFonts.lexendDeca(
               fontWeight: FontWeight.bold,
               color: const Color.fromARGB(255, 255, 255, 255)),
@@ -66,6 +90,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         iconTheme: const IconThemeData(
           color: Color.fromARGB(255, 153, 182, 160),
         ),
+        actions: [
+          IconButton(
+            icon:
+                const Icon(Icons.logout, color: Color.fromARGB(255, 255, 1, 1)),
+            onPressed: _logout, // Logout function
+          ),
+        ],
       ),
       body: FutureBuilder<void>(
         future: _fetchSurveysFuture,

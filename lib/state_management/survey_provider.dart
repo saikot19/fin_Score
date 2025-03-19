@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert'; // Import the dart:convert library for JSON encoding
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question_model.dart';
 import '../services/api_service.dart';
 
@@ -20,6 +21,10 @@ class SurveyProvider extends ChangeNotifier {
   ApiService get apiService => _apiService; // Add getter for ApiService
   Map<String, dynamic>? get userInfo => _userInfo; // Add getter for userInfo
 
+  SurveyProvider() {
+    _loadUser(); // Auto-load user on app start
+  }
+
   Future<void> login(String email, String password) async {
     _isLoading = true;
     notifyListeners();
@@ -29,6 +34,7 @@ class SurveyProvider extends ChangeNotifier {
       if (response != null) {
         _userInfo = response;
         _clearSessionData(); // Clear session data when a new user logs in
+        await _saveUser(); // Save user info for auto-login
         notifyListeners();
       } else {
         debugPrint("Login failed.");
@@ -41,6 +47,27 @@ class SurveyProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _saveUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_info', jsonEncode(_userInfo));
+  }
+
+  Future<void> _loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userData = prefs.getString('user_info');
+    if (userData != null) {
+      _userInfo = jsonDecode(userData);
+      notifyListeners();
+    }
+  }
+
+  void logout() async {
+    _userInfo = null;
+    notifyListeners();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_info');
+  }
+
   void _clearSessionData() {
     _surveyQuestions = [];
     _surveys = [];
@@ -49,13 +76,12 @@ class SurveyProvider extends ChangeNotifier {
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners()); // ✅ Prevent build-phase error
 
     try {
       final rawQuestions = await _apiService.fetchSurveyQuestions(segmentId);
       debugPrint("Fetched Questions for Segment $segmentId: $rawQuestions");
 
-      // Ensure _surveyQuestions is always a valid list
       _surveyQuestions = rawQuestions.isNotEmpty
           ? rawQuestions.map((q) => Question.fromJson(q)).toList()
           : [];
@@ -67,7 +93,7 @@ class SurveyProvider extends ChangeNotifier {
       debugPrint("Error fetching questions: $e");
     } finally {
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners()); // ✅ Prevent error
     }
   }
 
@@ -79,7 +105,8 @@ class SurveyProvider extends ChangeNotifier {
 
       final linkedQuestion = Question.fromJson(rawQuestion);
       _surveyQuestions.add(linkedQuestion);
-      notifyListeners();
+
+      Future.microtask(() => notifyListeners()); // ✅ Fix
     } catch (e) {
       debugPrint("Error fetching linked question: $e");
     }
@@ -95,17 +122,16 @@ class SurveyProvider extends ChangeNotifier {
     final userId = _userInfo!['user_id'];
 
     _isLoading = true;
-    notifyListeners();
+    Future.microtask(() => notifyListeners()); // ✅ Fix
 
     try {
       final response = await _apiService.fetchSurveyList(userId, branchId);
       _surveys = response;
-      notifyListeners();
     } catch (e) {
       debugPrint("Error fetching surveys: $e");
     } finally {
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners()); // ✅ Fix
     }
   }
 
