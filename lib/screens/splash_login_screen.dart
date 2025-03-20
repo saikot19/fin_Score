@@ -167,7 +167,7 @@ class _SplashLoginScreenState extends State<SplashLoginScreen>
             child: Column(
               children: [
                 Text(
-                  "V.1.2.0",
+                  "V.2.0.0",
                   style:
                       GoogleFonts.lexendDeca(fontSize: 10, color: Colors.white),
                 ),

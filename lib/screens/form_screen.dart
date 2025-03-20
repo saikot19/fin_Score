@@ -6,6 +6,7 @@ import '../state_management/survey_provider.dart';
 import '../state_management/user_provider.dart';
 import 'survey_screen.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FormScreen extends StatefulWidget {
   const FormScreen({Key? key}) : super(key: key);
@@ -25,6 +26,18 @@ class _FormScreenState extends State<FormScreen> {
     super.initState();
     loanDateController.text =
         "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+  }
+
+  Future<void> _clearSavedSurveyProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('surveyProgress');
+    setState(() {
+      memberIdController.clear();
+      memberNameController.clear();
+      loanAmountController.clear();
+      loanDateController.text =
+          "${DateTime.now().year}-${DateTime.now().month}-${DateTime.now().day}";
+    });
   }
 
   @override
@@ -179,10 +192,10 @@ class _FormScreenState extends State<FormScreen> {
     }
     int amount = int.tryParse(value) ?? 0;
     if (amount < 5000) {
-      return "আবেদনকৃত ঋণের পরিমাণ অন্তত ৫,000 BDT হতে হবে"; // Must be at least 5000 BDT
+      return "আবেদনকৃত ঋণের পরিমাণ অন্তত  ৳৫,০০০ হতে হবে"; // Must be at least 5000 BDT
     }
     if (amount > 2500000) {
-      return "সর্বাধিক ঋণের পরিমাণ ২৫,00,000 BDT হতে পারে"; // Max limit is 25,00,000 BDT
+      return "সর্বাধিক ঋণের পরিমাণ  ৳২৫,০০,০০০ হতে পারে"; // Max limit is 25,00,000 BDT
     }
     return null; // No error
   }
@@ -224,7 +237,7 @@ class _FormScreenState extends State<FormScreen> {
     }
   }
 
-  void _onStartSurvey() {
+  void _onStartSurvey() async {
     String memberId = memberIdController.text.trim();
     String memberName = memberNameController.text.trim();
     String loanDate = loanDateController.text.trim();
@@ -242,9 +255,12 @@ class _FormScreenState extends State<FormScreen> {
     int loanAmount = int.tryParse(loanAmountController.text.trim()) ?? 0;
     if (loanAmount < 5000 || loanAmount > 2500000) {
       _showError(
-          "আবেদনকৃত ঋণের পরিমাণ must be between 5,000 and 25,00,000 BDT.");
+          "আবেদনকৃত ঋণের পরিমাণ must be between ৳৫,০০০ and ৳২৫,০০,০০০ BDT.");
       return;
     }
+
+    // Clear any saved survey progress
+    await _clearSavedSurveyProgress();
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final branchId = userProvider.userInfo?['branch_id'] ?? 0;

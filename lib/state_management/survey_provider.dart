@@ -12,17 +12,20 @@ class SurveyProvider extends ChangeNotifier {
       {}; // Stores responses as (questionId -> selected option)
   bool _isLoading = false;
   Map<String, dynamic>? _userInfo; // Store user info
+  bool _hasIncompleteSurvey = false; // Tracks if there is an incomplete survey
 
   List<Question> get questions => _surveyQuestions;
   List<Map<String, dynamic>> get surveys => _surveys;
   Map<int, String> get responses => _responses;
   bool get isLoading => _isLoading;
+  bool get hasIncompleteSurvey => _hasIncompleteSurvey;
   int get totalCompletedSurveys => _surveys.length;
   ApiService get apiService => _apiService; // Add getter for ApiService
   Map<String, dynamic>? get userInfo => _userInfo; // Add getter for userInfo
 
   SurveyProvider() {
     _loadUser(); // Auto-load user on app start
+    _checkIncompleteSurvey(); // Check for incomplete surveys on app start
   }
 
   Future<void> login(String email, String password) async {
@@ -72,6 +75,7 @@ class SurveyProvider extends ChangeNotifier {
     _surveyQuestions = [];
     _surveys = [];
     _responses = {};
+    _hasIncompleteSurvey = false;
   }
 
   Future<void> fetchSurveyQuestions(int segmentId) async {
@@ -202,6 +206,7 @@ class SurveyProvider extends ChangeNotifier {
 
     if (success) {
       debugPrint("Survey submitted successfully.");
+      await clearIncompleteSurvey(); // Clear incomplete survey after submission
     } else {
       debugPrint("Failed to submit survey.");
     }
@@ -211,8 +216,50 @@ class SurveyProvider extends ChangeNotifier {
     await fetchSurveys();
   }
 
+  Future<void> saveIncompleteSurvey() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'incompleteSurvey',
+        jsonEncode({
+          'responses': _responses.map((key, value) =>
+              MapEntry(key.toString(), value)), // Convert keys to strings
+          'questions': _surveyQuestions.map((q) => q.toJson()).toList(),
+        }));
+    _hasIncompleteSurvey = true;
+    notifyListeners();
+  }
+
+  Future<void> loadIncompleteSurvey() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('incompleteSurvey')) {
+      final data = jsonDecode(prefs.getString('incompleteSurvey')!);
+      _responses = Map<String, String>.from(data['responses']).map(
+          (key, value) =>
+              MapEntry(int.parse(key), value)); // Convert keys back to integers
+      _surveyQuestions =
+          (data['questions'] as List).map((q) => Question.fromJson(q)).toList();
+      _hasIncompleteSurvey = true;
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearIncompleteSurvey() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('incompleteSurvey');
+    _responses.clear();
+    _surveyQuestions.clear();
+    _hasIncompleteSurvey = false;
+    notifyListeners();
+  }
+
   void clearResponses() {
     _responses.clear();
+    notifyListeners();
+  }
+
+  Future<void> _checkIncompleteSurvey() async {
+    final prefs = await SharedPreferences.getInstance();
+    _hasIncompleteSurvey = prefs.containsKey('incompleteSurvey');
     notifyListeners();
   }
 }

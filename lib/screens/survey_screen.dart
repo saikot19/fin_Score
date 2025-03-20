@@ -84,43 +84,15 @@ class _SurveyScreenState extends State<SurveyScreen> {
   }
 
   Future<void> _submitSurvey(SurveyProvider surveyProvider) async {
-    int totalScore = surveyProvider.calculateTotalScore();
-    Map<String, dynamic> surveyResponse = {
-      "member_id": widget.memberId,
-      "member_name": widget.memberName,
-      "branch_id": widget.branchId,
-      "applied_loan_amount": widget.loanAmount,
-      "start_date": widget.loanDate,
-      "completion_date": widget.loanDate,
-      "status": 1,
-      "questions": surveyProvider.responses.entries.map((entry) {
-        final question =
-            surveyProvider.questions.firstWhere((q) => q.id == entry.key);
-        final answer =
-            question.answers.firstWhere((a) => a.answerBangla == entry.value);
-        return {
-          "question_id": question.id,
-          "answer_id": answer.id,
-          "score": answer.score,
-        };
-      }).toList(),
-    };
+    await surveyProvider.submitSurvey(
+      widget.memberId,
+      widget.memberName,
+      widget.loanAmount,
+      widget.loanDate,
+      widget.loanDate,
+    );
 
-    // Convert survey response to JSON string
-    String surveyResponseJson = jsonEncode(surveyResponse);
-
-    // Log survey response
-    debugPrint("Survey Response JSON:");
-    debugPrint(surveyResponseJson);
-
-    // Send survey response to server
-    final apiService = ApiService();
-    bool success = await apiService.storeSurvey(surveyResponseJson);
-    if (success) {
-      // Clear saved survey progress
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('surveyProgress');
-
+    if (!surveyProvider.hasIncompleteSurvey) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -135,34 +107,46 @@ class _SurveyScreenState extends State<SurveyScreen> {
     }
   }
 
-  Future<void> _saveSurveyProgress(SurveyProvider surveyProvider) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'surveyProgress',
-        jsonEncode({
-          'currentSegment': currentSegment,
-          'responses': surveyProvider.responses
-              .map((key, value) => MapEntry(key.toString(), value)),
-        }));
+  Future<void> _loadSurveyProgress() async {
+    final surveyProvider = Provider.of<SurveyProvider>(context, listen: false);
+    await surveyProvider.loadIncompleteSurvey();
+
+    if (surveyProvider.hasIncompleteSurvey) {
+      setState(() {
+        currentSegment = 1; // Start from the first segment
+      });
+    } else {
+      surveyProvider.fetchSurveyQuestions(currentSegment);
+    }
   }
 
-  Future<void> _loadSurveyProgress() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.containsKey('surveyProgress')) {
-      final surveyProgress = jsonDecode(prefs.getString('surveyProgress')!);
-      setState(() {
-        currentSegment = surveyProgress['currentSegment'];
-        Provider.of<SurveyProvider>(context, listen: false).setResponses(
-            Map<String, String>.from(surveyProgress['responses'])
-                .map((key, value) => MapEntry(int.parse(key), value)));
-      });
-
-      Provider.of<SurveyProvider>(context, listen: false)
-          .fetchSurveyQuestions(currentSegment);
-    } else {
-      Provider.of<SurveyProvider>(context, listen: false)
-          .fetchSurveyQuestions(currentSegment);
-    }
+  Future<bool> _showExitConfirmationDialog(
+      SurveyProvider surveyProvider) async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Exit Survey"),
+          content: const Text(
+              "Do you want to exit the survey? Your progress will be cleared."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("No"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await surveyProvider.clearIncompleteSurvey();
+                surveyProvider.clearResponses(); // Clear form responses
+                Navigator.of(context).pop(true);
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldExit ?? false;
   }
 
   @override
@@ -176,12 +160,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _saveSurveyProgress(surveyProvider);
-        return true;
+        return await _showExitConfirmationDialog(surveyProvider);
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(segmentNames[currentSegment]!),
+          backgroundColor: const Color(0xFF01102B),
         ),
         body: surveyProvider.isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -190,8 +174,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                   SurveyTracker(
                     currentSegment: currentSegment,
                     totalSegments: segmentNames.length,
-                    segmentNames:
-                        segmentNames, // Pass the segmentNames parameter
+                    segmentNames: segmentNames,
                   ),
                   Expanded(
                     child: filteredQuestions.isNotEmpty
@@ -259,22 +242,24 @@ class _SurveyScreenState extends State<SurveyScreen> {
                       children: [
                         if (currentSegment > 1)
                           ElevatedButton.icon(
-                            onPressed: () async {
-                              await _saveSurveyProgress(surveyProvider);
-                              setState(() {
-                                currentSegment--;
-                              });
-                              surveyProvider
-                                  .fetchSurveyQuestions(currentSegment);
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Color.fromARGB(255, 153, 182, 160),
-                            ),
-                            label: const Text("Previous",
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255))),
-                          ),
+                              onPressed: () async {
+                                await surveyProvider.saveIncompleteSurvey();
+                                setState(() {
+                                  currentSegment--;
+                                });
+                                surveyProvider
+                                    .fetchSurveyQuestions(currentSegment);
+                              },
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.white),
+                              label: const Text(
+                                "Previous",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color(0xFF004d00), // Dark green
+                              )),
                         if (currentSegment < 4)
                           ElevatedButton.icon(
                             onPressed: () {
@@ -288,20 +273,21 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                 );
                                 return;
                               }
-                              _saveSurveyProgress(surveyProvider);
+                              surveyProvider.saveIncompleteSurvey();
                               setState(() {
                                 currentSegment++;
                               });
                               surveyProvider
                                   .fetchSurveyQuestions(currentSegment);
                             },
-                            icon: const Icon(
-                              Icons.arrow_forward,
-                              color: Color.fromARGB(255, 153, 182, 160),
-                            ),
+                            icon: const Icon(Icons.arrow_forward,
+                                color: Colors.white),
                             label: const Text("Next",
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255))),
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color(0xFF004d00), // Dark green
+                            ),
                           ),
                         if (currentSegment == 4)
                           ElevatedButton.icon(
@@ -318,14 +304,14 @@ class _SurveyScreenState extends State<SurveyScreen> {
                               }
                               _submitSurvey(surveyProvider);
                             },
-                            icon: const Icon(
-                              Icons.check,
-                              color: Color.fromARGB(255, 153, 182, 160),
-                            ),
+                            icon: const Icon(Icons.check, color: Colors.white),
                             label: const Text("Submit",
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255))),
-                          ),
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color(0xFF004d00), // Dark green
+                            ),
+                          )
                       ],
                     ),
                   ),
