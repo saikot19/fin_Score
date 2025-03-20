@@ -192,10 +192,10 @@ class _FormScreenState extends State<FormScreen> {
     }
     int amount = int.tryParse(value) ?? 0;
     if (amount < 5000) {
-      return "আবেদনকৃত ঋণের পরিমাণ অন্তত  ৳৫,০০০ হতে হবে"; // Must be at least 5000 BDT
+      return "আবেদনকৃত ঋণের পরিমাণ ন্যূনতম  ৳৫,০০০ হতে হবে"; // Must be at least 5000 BDT
     }
     if (amount > 2500000) {
-      return "সর্বাধিক ঋণের পরিমাণ  ৳২৫,০০,০০০ হতে পারে"; // Max limit is 25,00,000 BDT
+      return "সর্বাধিক ঋণের পরিমাণ সর্বোচ্চ ৳২৫,০০,০০০ হতে পারে"; // Max limit is 25,00,000 BDT
     }
     return null; // No error
   }

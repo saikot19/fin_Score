@@ -30,7 +30,8 @@ class SurveyScreen extends StatefulWidget {
   _SurveyScreenState createState() => _SurveyScreenState();
 }
 
-class _SurveyScreenState extends State<SurveyScreen> {
+class _SurveyScreenState extends State<SurveyScreen>
+    with WidgetsBindingObserver {
   late int currentSegment;
 
   final Map<int, String> segmentNames = {
@@ -44,9 +45,27 @@ class _SurveyScreenState extends State<SurveyScreen> {
   void initState() {
     super.initState();
     currentSegment = widget.initialSegmentId;
+    WidgetsBinding.instance.addObserver(this); // Add observer for app lifecycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSurveyProgress();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove observer
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
+      // Clear incomplete survey when the app is closed
+      final surveyProvider =
+          Provider.of<SurveyProvider>(context, listen: false);
+      surveyProvider.clearIncompleteSurvey();
+    }
   }
 
   List<Question> _filterQuestions(
@@ -136,8 +155,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
             ),
             TextButton(
               onPressed: () async {
-                await surveyProvider.clearIncompleteSurvey();
-                surveyProvider.clearResponses(); // Clear form responses
+                await surveyProvider
+                    .clearIncompleteSurvey(); // Clear incomplete survey
                 Navigator.of(context).pop(true);
               },
               child: const Text("Yes"),

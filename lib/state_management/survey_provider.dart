@@ -245,10 +245,10 @@ class SurveyProvider extends ChangeNotifier {
 
   Future<void> clearIncompleteSurvey() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('incompleteSurvey');
-    _responses.clear();
-    _surveyQuestions.clear();
-    _hasIncompleteSurvey = false;
+    await prefs.remove('incompleteSurvey'); // Remove incomplete survey data
+    _responses.clear(); // Clear responses
+    _surveyQuestions.clear(); // Clear survey questions
+    _hasIncompleteSurvey = false; // Update the flag
     notifyListeners();
   }
 
